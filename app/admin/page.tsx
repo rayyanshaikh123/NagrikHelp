@@ -8,6 +8,7 @@ import useSWR from "swr"
 import { getIssues, type Issue, updateIssue } from "@/services/issues"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import AdminMap from "@/components/admin-map"
 
 export default function AdminPage() {
   const router = useRouter()
@@ -25,6 +26,10 @@ export default function AdminPage() {
         <Sidebar role="admin" />
         <section className="flex-1 p-6 space-y-8">
           <h1 className="text-2xl font-semibold text-balance">Admin Dashboard</h1>
+          <div className="space-y-2">
+            <h2 className="text-lg font-medium">Issues Map</h2>
+            <AdminMap height={380} />
+          </div>
           <AdminIssues />
         </section>
       </div>

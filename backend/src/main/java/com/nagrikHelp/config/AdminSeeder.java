@@ -35,15 +35,38 @@ public class AdminSeeder implements CommandLineRunner {
             return; // no seeding configured
         }
         String email = adminEmail.toLowerCase();
-        if (userRepository.findByEmail(email).isEmpty()) {
+        userRepository.findByEmail(email).ifPresentOrElse(existing -> {
+            boolean changed = false;
+            if (!adminName.equals(existing.getName())) {
+                existing.setName(adminName);
+                changed = true;
+            }
+            // Always reset role to SUPER_ADMIN
+            if (existing.getRole() != Role.SUPER_ADMIN) {
+                existing.setRole(Role.SUPER_ADMIN);
+                changed = true;
+            }
+            // Reset password from properties on each run (dev convenience)
+            String encoded = passwordEncoder.encode(adminPassword);
+            if (!encoded.equals(existing.getPasswordHash())) {
+                existing.setPasswordHash(encoded);
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(existing);
+                log.info("Updated SUPER_ADMIN user: {}", email);
+            } else {
+                log.info("SUPER_ADMIN user already up-to-date: {}", email);
+            }
+        }, () -> {
             User admin = User.builder()
                     .name(adminName)
                     .email(email)
                     .passwordHash(passwordEncoder.encode(adminPassword))
-                    .role(Role.ADMIN)
+                    .role(Role.SUPER_ADMIN)
                     .build();
             userRepository.save(admin);
-            log.info("Seeded ADMIN user: {}", email);
-        }
+            log.info("Seeded SUPER_ADMIN user: {}", email);
+        });
     }
 }

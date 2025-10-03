@@ -18,6 +18,9 @@ export default function Sidebar({ role }: { role: "citizen" | "admin" }) {
             <SidebarLink href="/admin?status=pending" label="Pending" />
             <SidebarLink href="/admin?status=in-progress" label="In-Progress" />
             <SidebarLink href="/admin?status=resolved" label="Resolved" />
+            <SidebarLink href="/admin/management" label="Admin Management" />
+            <SidebarLink href="/admin/reports" label="Reports" />
+            
           </>
         )}
       </nav>
@@ -26,7 +29,7 @@ export default function Sidebar({ role }: { role: "citizen" | "admin" }) {
 }
 
 function SidebarLink({ href, label }: { href: string; label: string }) {
-  const isActive = typeof window !== "undefined" && window.location?.href?.includes(href)
+  const isActive = typeof window !== "undefined" && window.location?.pathname === href
   return (
     <Link
       href={href}

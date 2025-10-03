@@ -1,7 +1,8 @@
 package com.nagrikHelp.model;
 
 public enum IssueStatus {
-    PENDING,
+    OPEN,
     IN_PROGRESS,
-    RESOLVED
+    RESOLVED,
+    PENDING
 }

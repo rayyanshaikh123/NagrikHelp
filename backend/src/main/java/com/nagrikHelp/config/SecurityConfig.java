@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableMethodSecurity
@@ -33,7 +34,12 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Public browse access for issues
+                        .requestMatchers(HttpMethod.GET, "/api/issues/**").permitAll()
+                        // Citizen-only creation of issues
+                        .requestMatchers(HttpMethod.POST, "/api/issues/**").hasRole("CITIZEN")
+                        // Existing admin/citizen APIs
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/api/citizen/**").hasRole("CITIZEN")
                         .anyRequest().authenticated()
                 )
@@ -57,7 +63,7 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://127.0.0.1:3000", "*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(false); // using Authorization header with Bearer token
+        config.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

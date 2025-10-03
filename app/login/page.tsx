@@ -23,7 +23,7 @@ export default function LoginPage() {
       const auth = await loginApi({ email, password })
       persistAuth(auth)
       const role = mapRoleToFrontend(auth.role)
-      router.replace(role === "admin" ? "/admin" : "/citizen")
+      router.replace(role === "admin" ? "/admin" : "/citizen/public")
     } catch (e: any) {
       setError(e?.message || "Login failed")
     } finally {

@@ -7,9 +7,11 @@ import { logout as authLogout } from "@/services/auth"
 
 export default function Navbar() {
   const [role, setRole] = useState<string | null>(null)
+  const [backendRole, setBackendRole] = useState<string | null>(null)
 
   useEffect(() => {
     setRole(localStorage.getItem("role"))
+    setBackendRole(localStorage.getItem("backendRole"))
   }, [])
 
   return (
@@ -19,18 +21,7 @@ export default function Navbar() {
           Civic Issue Reporter
         </Link>
         <div className="flex items-center gap-3">
-          <Link
-            href="/#features"
-            className="hidden sm:inline-block text-sm text-muted-foreground hover:text-foreground"
-          >
-            Features
-          </Link>
-          <Link
-            href="/#feedback"
-            className="hidden sm:inline-block text-sm text-muted-foreground hover:text-foreground"
-          >
-            Feedback
-          </Link>
+          {/* Dynamic, role-based nav */}
           {!role ? (
             <>
               <Button asChild size="sm" variant="secondary">
@@ -42,16 +33,42 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <span className="text-xs px-2 py-1 rounded-md bg-muted">Role: {role}</span>
-              <Button asChild size="sm" variant="secondary">
-                <Link href={role === "admin" ? "/admin" : "/citizen"}>Dashboard</Link>
-              </Button>
+              <span className="text-xs px-2 py-1 rounded-md bg-muted">Role: {backendRole || role}</span>
+              {role === "citizen" ? (
+                <>
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href="/citizen/public">Public Posts</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="ghost">
+                    <Link href="/citizen">Dashboard</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button asChild size="sm" variant="secondary">
+                    <Link href="/admin">Dashboard</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="ghost">
+                    <Link href="/admin/reports">Reports</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="ghost">
+                    <Link href="/admin/map">Map</Link>
+                  </Button>
+                  {backendRole === "SUPER_ADMIN" ? (
+                    <Button asChild size="sm" variant="ghost">
+                      <Link href="/admin/management">Management</Link>
+                    </Button>
+                  ) : null}
+                </>
+              )}
               <Button
                 size="sm"
                 onClick={() => {
                   authLogout()
-                  try { localStorage.removeItem("userId") } catch {}
-                  window.location.href = "/login"
+                  try {
+                    localStorage.removeItem("userId")
+                  } catch {}
+                  window.location.href = "/" // redirect to landing page after logout
                 }}
               >
                 Logout

@@ -1,4 +1,4 @@
-export type BackendRole = "CITIZEN" | "ADMIN"
+export type BackendRole = "CITIZEN" | "ADMIN" | "SUPER_ADMIN"
 
 export type AuthResponse = {
   token: string
@@ -41,13 +41,14 @@ export async function register(input: {
 }
 
 export function mapRoleToFrontend(role: BackendRole): "citizen" | "admin" {
-  return role === "ADMIN" ? "admin" : "citizen"
+  return role === "ADMIN" || role === "SUPER_ADMIN" ? "admin" : "citizen"
 }
 
 export function persistAuth(auth: AuthResponse) {
   try {
     localStorage.setItem("authToken", auth.token)
     localStorage.setItem("role", mapRoleToFrontend(auth.role))
+    localStorage.setItem("backendRole", auth.role)
     localStorage.setItem("name", auth.name)
     localStorage.setItem("email", auth.email)
     // Use email as a stable userId for demo data linkage
@@ -59,6 +60,7 @@ export function logout() {
   try {
     localStorage.removeItem("authToken")
     localStorage.removeItem("role")
+    localStorage.removeItem("backendRole")
     localStorage.removeItem("name")
     localStorage.removeItem("email")
     // keep demo issues linkage optional

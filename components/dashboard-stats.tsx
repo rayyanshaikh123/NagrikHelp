@@ -15,7 +15,7 @@ export default function DashboardStats({ issues }: { issues: Issue[] }) {
   ]
 
   return (
-    <>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {stats.map((s) => (
         <Card key={s.label} className="bg-card">
           <CardContent className="p-4">
@@ -24,6 +24,6 @@ export default function DashboardStats({ issues }: { issues: Issue[] }) {
           </CardContent>
         </Card>
       ))}
-    </>
+    </div>
   )
 }

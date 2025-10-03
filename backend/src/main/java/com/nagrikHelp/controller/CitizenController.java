@@ -2,6 +2,7 @@ package com.nagrikHelp.controller;
 
 import com.nagrikHelp.dto.CreateIssueRequest;
 import com.nagrikHelp.dto.IssueResponse;
+import com.nagrikHelp.dto.IssueResponseDto;
 import com.nagrikHelp.service.IssueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +34,10 @@ public class CitizenController {
     public IssueResponse createIssue(@AuthenticationPrincipal UserDetails user,
                                      @Valid @RequestBody CreateIssueRequest request) {
         return issueService.createIssue(user.getUsername(), request);
+    }
+
+    @GetMapping("/public/issues")
+    public List<IssueResponseDto> publicIssues() {
+        return issueService.getAllIssues();
     }
 }

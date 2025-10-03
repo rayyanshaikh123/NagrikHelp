@@ -1,6 +1,7 @@
 package com.nagrikHelp.service;
 
 import com.nagrikHelp.dto.AuthResponse;
+import com.nagrikHelp.dto.CreateAdminRequest;
 import com.nagrikHelp.dto.LoginRequest;
 import com.nagrikHelp.dto.RegisterRequest;
 import com.nagrikHelp.model.Role;
@@ -54,5 +55,22 @@ public class AuthService {
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
         String token = jwtService.generateToken(user.getEmail(), user.getRole());
         return new AuthResponse(token, user.getRole(), user.getName(), user.getEmail());
+    }
+
+    public User createAdmin(CreateAdminRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already in use");
+        }
+        if (request.getPhone() != null && !request.getPhone().isBlank() && userRepository.existsByPhone(request.getPhone())) {
+            throw new IllegalArgumentException("Phone already in use");
+        }
+        User admin = User.builder()
+                .name(request.getName())
+                .email(request.getEmail().toLowerCase())
+                .phone(request.getPhone())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(Role.ADMIN)
+                .build();
+        return userRepository.save(admin);
     }
 }

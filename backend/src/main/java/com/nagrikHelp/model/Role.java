@@ -2,5 +2,6 @@ package com.nagrikHelp.model;
 
 public enum Role {
     CITIZEN,
-    ADMIN
+    ADMIN,
+    SUPER_ADMIN
 }

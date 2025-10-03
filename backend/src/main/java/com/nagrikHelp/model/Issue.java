@@ -21,9 +21,17 @@ public class Issue {
 
     private IssueStatus status;
 
+    // New fields for Phase 2
+    private IssueCategory category;
+    private String imageBase64;
+
     // store creator as email (username)
     @Indexed
     private String createdBy;
+
+    // Additional creator metadata for responses
+    private String createdById;
+    private String createdByName;
 
     private String assignee; // email of assignee (optional)
 
