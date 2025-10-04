@@ -4,6 +4,8 @@ import com.nagrikHelp.dto.IssueVoteSummaryDto;
 import com.nagrikHelp.model.Vote;
 import com.nagrikHelp.model.VoteValue;
 import com.nagrikHelp.repository.VoteRepository;
+import com.nagrikHelp.repository.IssueRepository;
+import com.nagrikHelp.model.Issue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,8 @@ public class VoteService {
 
     private final VoteRepository voteRepository;
     private final IssueStreamService issueStreamService;
+    private final IssueRepository issueRepository;
+    private final NotificationService notificationService;
 
     public IssueVoteSummaryDto castVote(String issueId, String userId, VoteValue value) {
         long now = System.currentTimeMillis();
@@ -43,6 +47,12 @@ public class VoteService {
                 .orElse(null);
         IssueVoteSummaryDto summary = new IssueVoteSummaryDto(issueId, up, down, userVote);
         issueStreamService.broadcastVote(summary);
+        try {
+            Issue issue = issueRepository.findById(issueId).orElse(null);
+            if (issue != null) {
+                notificationService.notifyOwnerOnVote(issue, userId, up, down);
+            }
+        } catch (Exception ignored) {}
         return summary;
     }
 

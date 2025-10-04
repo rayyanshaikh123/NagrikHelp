@@ -3,6 +3,7 @@ package com.nagrikHelp.controller;
 import com.nagrikHelp.dto.CreateIssueRequest;
 import com.nagrikHelp.dto.IssueResponse;
 import com.nagrikHelp.dto.IssueResponseDto;
+import com.nagrikHelp.dto.CitizenUpdateIssueRequest;
 import com.nagrikHelp.service.IssueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,5 +40,21 @@ public class CitizenController {
     @GetMapping("/public/issues")
     public List<IssueResponseDto> publicIssues() {
         return issueService.getAllIssues();
+    }
+
+    @PatchMapping("/issues/{id}")
+    public ResponseEntity<IssueResponse> updateOwn(@PathVariable String id,
+                                                    @AuthenticationPrincipal UserDetails user,
+                                                    @RequestBody CitizenUpdateIssueRequest req) {
+        return issueService.updateCitizenIssue(user.getUsername(), id, req)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/issues/{id}")
+    public ResponseEntity<?> deleteOwn(@PathVariable String id,
+                                       @AuthenticationPrincipal UserDetails user) {
+        boolean deleted = issueService.deleteCitizenIssue(user.getUsername(), id);
+        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

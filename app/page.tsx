@@ -1,224 +1,273 @@
 "use client"
-
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { MapPin, Camera, MessageSquare, ShieldCheck } from "lucide-react"
+import { useEffect, useRef, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { MapPin, Camera, MessageSquare, ShieldCheck, ArrowRight, ArrowDown } from "lucide-react"
+import { Hero } from "@/components/landing-hero"
+import { cn } from "@/lib/utils"
+import { PhoneFlowDemo } from "@/components/phone-flow-demo"
+import SpotlightCard from '@/components/spotlight-card'
+import { FloatingNav } from '@/components/ui/floating-navbar'
+import { IconHome, IconListDetails, IconDeviceMobile, IconHelpCircle } from '@tabler/icons-react'
+import LogoLoop from '@/components/LogoLoop'
 
 export default function Home() {
   const router = useRouter()
-  const [fbName, setFbName] = useState("")
-  const [fbEmail, setFbEmail] = useState("")
-  const [fbMsg, setFbMsg] = useState("")
-  const [fbSent, setFbSent] = useState(false)
+  const howRef = useRef<HTMLElement | null>(null)
+  const featuresRef = useRef<HTMLElement | null>(null)
+  const faqRef = useRef<HTMLElement | null>(null)
+  const [howActive, setHowActive] = useState(false)
+
+  const govLogos = [
+    { src: '/logo/India.png', alt: 'Government of India', title: 'Government of India', href: 'https://india.gov.in' },
+    { src: '/logo/dept.png', alt: 'Civic Department', title: 'Civic Department', href: '#' },
+    { src: '/logo/dept1.png', alt: 'Urban Development', title: 'Urban Development', href: '#' },
+    { src: '/logo/disaster.png', alt: 'Disaster Management', title: 'Disaster Management', href: '#' },
+    { src: '/logo/g20.png', alt: 'Health Ministry', title: 'Health Ministry', href: '#' },
+  ]
+
+  useEffect(() => {
+    if (!howRef.current) return
+    const el = howRef.current
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.intersectionRatio >= 0.60) {
+          setHowActive(true)
+        } else if (e.intersectionRatio === 0) {
+          // fully out of view -> reset
+          setHowActive(false)
+        }
+      })
+    }, { threshold: [0, 0.60] })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  const sectionRefs = { features: featuresRef, 'how-it-works': howRef, faq: faqRef }
 
   return (
-    <main className="min-h-dvh">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div aria-hidden className="h-6 w-6 rounded bg-primary" />
-            <span className="font-semibold">Civic Reporter</span>
-          </div>
-          <nav className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => router.push("/roles")}>
-              Roles
-            </Button>
-            <Button onClick={() => router.push("/roles")}>Get Started</Button>
-          </nav>
-        </div>
-      </header>
+    <main className="min-h-dvh flex flex-col">
+      {/* Floating Navigation (replaces old header & pill nav) */}
+      <FloatingNav
+        navItems={[
+          { name: 'Home', link: '/', icon: <IconHome className="h-4 w-4" /> },
+          { name: 'Features', link: '#features', icon: <IconListDetails className="h-4 w-4" /> },
+          { name: 'How It Works', link: '#how-it-works', icon: <IconListDetails className="h-4 w-4" /> },
+          { name: 'Roles', link: '/roles', icon: <IconListDetails className="h-4 w-4" /> },
+          { name: 'Get Started', link: '/roles', icon: <IconDeviceMobile className="h-4 w-4" /> },
+        ]}
+        hideOnScroll
+        threshold={10}
+        sectionRefs={sectionRefs}
+      />
 
-      <section className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 py-16 md:grid-cols-2">
-        <div>
-          <h1 className="text-balance text-4xl font-semibold leading-tight md:text-5xl">
-            Crowdsourced Civic Issue Reporting and Resolution
-          </h1>
-          <p className="mt-4 text-muted-foreground leading-relaxed">
-            Empower citizens to report issues and help admins resolve them faster. Simple forms, clear statuses, and an
-            efficient workflow for healthier cities.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button onClick={() => router.push("/roles")}>Choose Your Role</Button>
-            <Button variant="outline" onClick={() => router.push("/citizen")}>
-              Explore Citizen
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/admin")}>
-              Explore Admin
-            </Button>
-          </div>
-        </div>
+      {/* Hero with added top margin for spacing below floating nav */}
+   
+        <Hero />
+      
 
-        <div className="rounded-lg border bg-card p-6">
-          <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-            <li>Report issues with title, description, location, and photos</li>
-            <li>Track your submissions and receive status updates</li>
-            <li>Admins view, filter, assign tasks, and update statuses</li>
-            <li>Clean, minimal UI built with shadcn/ui components</li>
-            <li>Frontend-only demo with dummy data (ready for Spring Boot)</li>
-          </ul>
+      {/* Features ( concise ) */}
+      <section id="features" ref={featuresRef} className="mx-auto w-full max-w-7xl px-6 py-16 md:py-24">
+        <div className="mb-10 flex flex-col gap-3">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Platform Capabilities</h2>
+          <p className="text-sm md:text-base text-muted-foreground max-w-prose">Fast, transparent civic reporting. Larger cards highlight the core experience at a glance.</p>
         </div>
-      </section>
-
-      <section id="features" className="mx-auto max-w-6xl px-6 pb-6 md:pb-10">
-        <h2 className="text-2xl font-semibold mb-4">Features</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Location-aware</CardTitle>
-              <MapPin className="h-5 w-5 text-brand" />
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Pin exact locations to speed up routing and resolution.
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Photo evidence</CardTitle>
-              <Camera className="h-5 w-5 text-brand" />
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Attach images for context so admins can triage faster.
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Comments & updates</CardTitle>
-              <MessageSquare className="h-5 w-5 text-brand" />
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Discuss issues and track live progress in one place.
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Admin workflow</CardTitle>
-              <ShieldCheck className="h-5 w-5 text-brand" />
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Assign, prioritize, and resolve with a simple dashboard.
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <section id="how-it-works" className="mx-auto max-w-6xl px-6 py-6 md:py-10">
-        <h2 className="text-2xl font-semibold mb-4">How it works</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">1. Report</CardTitle>
-              <CardDescription>Fill a quick form with photos and a location.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Citizens can submit new issues in minutes from any device.
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">2. Track</CardTitle>
-              <CardDescription>Get status updates and comment as things progress.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Stay informed transparently through each step to resolution.
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">3. Resolve</CardTitle>
-              <CardDescription>Admins triage, assign, and close out issues.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              A lightweight workflow that fits small teams and busy cities.
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <section id="feedback" className="mx-auto max-w-3xl px-6 py-6 md:py-10">
-        <Card asChild>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              // In a real app, POST to an API route.
-              setFbSent(true)
-            }}
+        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
+          <FeatureCard
+            size="lg"
+            title="Location‑Aware Reports"
+            icon={<MapPin className="h-8 w-8" />}
+            bullets={["Manual entry or geocode assist","Structured location string","Future: map pin persistence"]}
           >
-            <CardHeader>
-              <CardTitle>Feedback</CardTitle>
-              <CardDescription>Tell us what features you want next.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              {!fbSent ? (
-                <>
-                  <div className="grid gap-2">
-                    <Label htmlFor="fb-name">Name</Label>
-                    <Input
-                      id="fb-name"
-                      value={fbName}
-                      onChange={(e) => setFbName(e.target.value)}
-                      placeholder="Jane Citizen"
-                      autoComplete="name"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="fb-email">Email</Label>
-                    <Input
-                      id="fb-email"
-                      type="email"
-                      value={fbEmail}
-                      onChange={(e) => setFbEmail(e.target.value)}
-                      placeholder="jane@example.com"
-                      autoComplete="email"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="fb-msg">Message</Label>
-                    <Textarea
-                      id="fb-msg"
-                      value={fbMsg}
-                      onChange={(e) => setFbMsg(e.target.value)}
-                      placeholder="Share your thoughts..."
-                      rows={5}
-                      required
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <Button type="submit" className="bg-brand hover:bg-brand/90 text-background">
-                      Send feedback
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-sm text-brand">Thanks! Your feedback was recorded.</div>
-              )}
-            </CardContent>
-          </form>
-        </Card>
+            Capture precise context so resolution teams dispatch effectively and reduce back‑and‑forth.
+          </FeatureCard>
+          <FeatureCard
+            size="lg"
+            title="Photo Evidence"
+            icon={<Camera className="h-8 w-8" />}
+            bullets={["Drag & drop upload","Instant preview","Optimizable pipeline"]}
+          >
+            Visual clarity accelerates triage decisions and improves accuracy in categorization.
+          </FeatureCard>
+          <FeatureCard
+            size="lg"
+            title="Conversation & Signals"
+            icon={<MessageSquare className="h-8 w-8" />}
+            bullets={["Comment threads","Community voting","Recent activity snapshot"]}
+          >
+            Encourage constructive collaboration while surfacing priority through transparent engagement.
+          </FeatureCard>
+          <FeatureCard
+            size="lg"
+            title="Admin Workflow"
+            icon={<ShieldCheck className="h-8 w-8" />}
+            bullets={["Structured statuses","Assignment ready","Resolution archive"]}
+          >
+            A lean progression model that scales from pilot deployments to full municipal adoption.
+          </FeatureCard>
+          <FeatureCard
+            size="lg"
+            title="Scalable Layout"
+            icon={<ShieldCheck className="h-8 w-8" />}
+            bullets={["Responsive grid","Accessible keyboard focus","Plain color adaptive themes"]}
+          >
+            Built with composability—easily extend sections without redesign overhead.
+          </FeatureCard>
+          <FeatureCard
+            size="lg"
+            title="Future Integrations"
+            icon={<ShieldCheck className="h-8 w-8" />}
+            bullets={["SSE / WebSockets","Geo heat clustering","Automated SLA metrics"]}
+          >
+            The UI anticipates data enrichment layers while remaining lightweight now.
+          </FeatureCard>
+        </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-16">
-        <div className="rounded-lg border bg-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-medium">Ready to try it?</h3>
-            <p className="text-sm text-muted-foreground">Choose your role and explore the demo dashboards.</p>
+      {/* How It Works */}
+      <section id="how-it-works" ref={howRef} className="bg-muted/30 border-y">
+        <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
+          <div className="mb-10 flex flex-col gap-2">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">How it works</h2>
+            <p className="text-sm text-muted-foreground max-w-prose">A streamlined three‑step civic reporting loop.</p>
           </div>
-          <div className="flex gap-3">
-            <Button onClick={() => router.push("/roles")} className="bg-brand hover:bg-brand/90 text-background">
-              Get started
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/#features")}>
-              See features
-            </Button>
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-8 md:gap-10">
+            {/* Report */}
+            <div className="flex flex-col items-center gap-4 flex-1">
+              <PhoneFlowDemo staticStep="report" sectionActive={howActive} />
+              <h3 className="text-sm font-medium tracking-wide">Report</h3>
+              {/* Mobile downward arrow to next step */}
+              <div className="md:hidden flex justify-center pt-1" aria-hidden>
+                <ArrowDown className="h-6 w-6 text-muted-foreground" />
+              </div>
+            </div>
+            {/* Desktop arrow */}
+            <div className="hidden md:flex items-center justify-center" aria-hidden>
+              <ArrowRight className="h-10 w-10 text-muted-foreground" />
+            </div>
+            {/* Track */}
+            <div className="flex flex-col items-center gap-4 flex-1">
+              <PhoneFlowDemo staticStep="track" sectionActive={howActive} />
+              <h3 className="text-sm font-medium tracking-wide">Track</h3>
+              <div className="md:hidden flex justify-center pt-1" aria-hidden>
+                <ArrowDown className="h-6 w-6 text-muted-foreground" />
+              </div>
+            </div>
+            {/* Desktop arrow */}
+            <div className="hidden md:flex items-center justify-center" aria-hidden>
+              <ArrowRight className="h-10 w-10 text-muted-foreground" />
+            </div>
+            {/* Resolve */}
+            <div className="flex flex-col items-center gap-4 flex-1">
+              <PhoneFlowDemo staticStep="resolve" sectionActive={howActive} />
+              <h3 className="text-sm font-medium tracking-wide">Resolve</h3>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Partner Logos / Government Loop */}
+      <section className="relative border-b bg-background/60 supports-[backdrop-filter]:bg-background/40">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 flex flex-col gap-8">
+          <div className="flex flex-col gap-2 max-w-xl">
+            <h3 className="text-sm font-medium tracking-wide text-primary/80">Trusted Pilots & Departments</h3>
+            <p className="text-sm text-muted-foreground">Prototype ready for municipal innovation labs, public works teams, and smart city pilots.</p>
+          </div>
+          <div className="relative h-[120px]">
+            <LogoLoop
+              logos={govLogos}
+              speed={90}
+              direction="left"
+              logoHeight={42}
+              gap={56}
+              pauseOnHover
+              scaleOnHover
+              fadeOut
+              fadeOutColor="var(--background)"
+              ariaLabel="Government & civic pilot partners"
+              className="[--logoloop-fadeColor:var(--background)]"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ (trimmed) */}
+      <section id="faq" ref={faqRef} className="mx-auto w-full max-w-5xl px-6 py-16 md:py-20">
+        <div className="mb-8 flex flex-col gap-2">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">FAQ</h2>
+          <p className="text-sm text-muted-foreground">Quick answers about the demo.</p>
+        </div>
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="f1">
+            <AccordionTrigger className="text-left">Is this production ready?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">This UI is a frontend demonstration. It is structured so a backend (e.g. Spring Boot) can be wired in easily.</AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="f2">
+            <AccordionTrigger className="text-left">Does it support real-time updates?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">The architecture anticipates SSE / WebSocket integration; placeholders mimic the interaction model.</AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="f3">
+            <AccordionTrigger className="text-left">Can I customize categories?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">Yes—category & status taxonomies can be adapted to local governance needs.</AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </section>
+
+      <footer className="mt-auto border-t bg-background/70 supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between text-xs text-muted-foreground">
+          <span>&copy; {new Date().getFullYear()} Civic Reporter</span>
+          <div className="flex gap-4">
+            <button onClick={()=>router.push('#features')} className="hover:text-foreground transition">Features</button>
+            <button onClick={()=>router.push('#how-it-works')} className="hover:text-foreground transition">How It Works</button>
+            <button onClick={()=>router.push('#faq')} className="hover:text-foreground transition">FAQ</button>
+          </div>
+        </div>
+      </footer>
     </main>
+  )
+}
+
+function FeatureCard({ title, icon, children, bullets, size = 'md' }: { title: string; icon: React.ReactNode; children: React.ReactNode; bullets?: string[]; size?: 'md' | 'lg' }) {
+  const large = size === 'lg'
+  return (
+    <SpotlightCard spotlightColor="rgba(5, 213, 255, 0.43)" className="h-full">
+      <Card
+        className={cn(
+          'relative h-full flex flex-col overflow-hidden border border-border/70 bg-card rounded-xl',
+          large && 'p-0',
+          // Further decreased vertical sizing
+          'min-h-[220px] md:min-h-[250px]'
+        )}
+      >
+        <CardHeader className={cn('flex-1 pb-2', large && 'p-5 pb-3')}> 
+          <div className="flex items-start justify-between gap-3 h-full">
+            <div className="space-y-1.5 pr-1">
+              <CardTitle className={cn('font-semibold tracking-tight', large ? 'text-lg leading-snug' : 'text-sm')}>{title}</CardTitle>
+              {children ? (
+                <p className={cn('text-muted-foreground line-clamp-2', large ? 'text-[13px] leading-snug' : 'text-[11px] leading-snug')}>
+                  {children}
+                </p>
+              ) : null}
+            </div>
+            <span className={cn('shrink-0 rounded-md grid place-items-center bg-primary/10 border border-border/60', large ? 'h-12 w-12' : 'h-9 w-9')}>
+              <span className="text-primary/90">{icon}</span>
+            </span>
+          </div>
+        </CardHeader>
+        {bullets && bullets.length ? (
+          <CardContent className={cn('mt-auto w-full pt-0 pb-4', large && 'px-5 pt-0')}> 
+            <ul className={cn('space-y-1.5', large ? 'mt-1' : 'mt-0.5')}>
+              {bullets.slice(0,3).map((b,i)=>(
+                <li key={i} className={cn('flex items-start gap-1.5 text-muted-foreground', large ? 'text-[11px]' : 'text-[10px]')}>
+                  <span className="mt-[5px] h-1.5 w-1.5 rounded-full bg-primary/60" />
+                  <span className="leading-snug line-clamp-1">{b}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        ) : null}
+      </Card>
+    </SpotlightCard>
   )
 }

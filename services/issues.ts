@@ -23,7 +23,6 @@ export type Issue = {
   status: IssueStatus
   createdBy: string
   createdById?: string
-  assignee?: string
   createdAt: number
   updatedAt: number
   upVotes?: number
@@ -31,6 +30,7 @@ export type Issue = {
   userVote?: 'UP' | 'DOWN' | null
   commentsCount?: number
   recentComments?: Comment[]
+  shareToken?: string
 }
 
 // Map backend enum (OPEN/PENDING, IN_PROGRESS, RESOLVED) to FE status strings
@@ -72,7 +72,6 @@ function fromApi(i: any): Issue {
     status: mapStatusFromApi(i.status),
     createdBy: createdByName,
     createdById,
-    assignee: i.assignee || undefined,
     createdAt: typeof i.createdAt === "number" ? i.createdAt : new Date(i.createdAt).getTime(),
     updatedAt: i.updatedAt ?? (i.createdAt ? new Date(i.createdAt).getTime() : Date.now()),
     upVotes: i.upVotes ?? 0,
@@ -87,6 +86,7 @@ function fromApi(i: any): Issue {
       text: c.text,
       createdAt: c.createdAt,
     })),
+    shareToken: i.shareToken || undefined,
   }
 }
 
@@ -135,7 +135,6 @@ export async function createIssue(input: {
 export async function updateIssue(id: string, patch: Partial<Issue>): Promise<Issue | undefined> {
   const body: any = {}
   if (patch.status) body.status = mapStatusToApi(patch.status)
-  if (patch.assignee !== undefined) body.assignee = patch.assignee
   const res = await authFetch(`${API_BASE}/api/admin/issues/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -208,5 +207,77 @@ export async function getComments(issueId: string, page = 0, size = 20): Promise
     total: data.total,
     page: data.page,
     size: data.size,
+  }
+}
+
+export async function updateCitizenIssue(id: string, patch: Partial<{ title: string; description: string; location: string; category: IssueCategory; imageBase64: string }>): Promise<Issue> {
+  const res = await authFetch(`${API_BASE}/api/citizen/issues/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  })
+  if (!res.ok) throw new Error(`Failed to update issue: ${res.status}`)
+  const data = await res.json()
+  return fromApi(data)
+}
+
+export async function deleteCitizenIssue(id: string): Promise<void> {
+  const res = await authFetch(`${API_BASE}/api/citizen/issues/${id}`, { method: 'DELETE' })
+  if (res.status === 204) return
+  if (res.status === 404) throw new Error('Issue not found')
+  if (!res.ok) throw new Error(`Failed to delete issue: ${res.status}`)
+}
+
+export async function followIssueByShareToken(token: string, input: { phone?: string; email?: string; webhookUrl?: string }) {
+  const body: any = {}
+  if (input.phone) body.phone = input.phone
+  if (input.email) body.email = input.email
+  if (input.webhookUrl) body.webhookUrl = input.webhookUrl
+  const res = await fetch(`${API_BASE}/api/public/issues/${token}/follow`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`Follow failed: ${res.status}`)
+  return fromApi(await res.json())
+}
+
+export async function unfollowIssueByShareToken(token: string, input: { phone?: string; email?: string; webhookUrl?: string }) {
+  const body: any = {}
+  if (input.phone) body.phone = input.phone
+  if (input.email) body.email = input.email
+  if (input.webhookUrl) body.webhookUrl = input.webhookUrl
+  const res = await fetch(`${API_BASE}/api/public/issues/${token}/unfollow`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`Unfollow failed: ${res.status}`)
+  return fromApi(await res.json())
+}
+
+export async function getSharedIssue(token: string): Promise<Issue> {
+  const res = await fetch(`${API_BASE}/api/public/issues/${token}`)
+  if (!res.ok) throw new Error(`Shared issue not found: ${res.status}`)
+  const data = await res.json()
+  // PublicIssueResponse returns limited fields; adapt to Issue shape
+  return {
+    id: token, // synthetic id for UI
+    title: data.title,
+    description: data.description,
+    location: data.location,
+    photoUrl: undefined,
+    imageBase64: data.imageBase64,
+    category: data.category,
+    status: mapStatusFromApi(data.status),
+    createdBy: '',
+    createdAt: data.createdAt,
+    updatedAt: data.createdAt,
+    upVotes: data.upvoteCount,
+    downVotes: 0,
+    userVote: null,
+    commentsCount: 0,
+    recentComments: [],
+    shareToken: token,
   }
 }

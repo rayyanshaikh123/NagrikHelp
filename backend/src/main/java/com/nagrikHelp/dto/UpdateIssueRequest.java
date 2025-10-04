@@ -6,5 +6,5 @@ import lombok.Data;
 public class UpdateIssueRequest {
     // accepts values like "pending", "in-progress", "resolved" or enum names
     private String status;
-    private String assignee;
+    // removed legacy assignee field
 }

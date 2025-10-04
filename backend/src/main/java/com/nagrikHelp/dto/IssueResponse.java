@@ -18,11 +18,12 @@ public class IssueResponse {
     private String photoUrl;
     private IssueStatus status;
     private String createdBy;
-    private String assignee;
     private long createdAt;
     private long updatedAt;
     private IssueCategory category;
     private String imageBase64;
+    private String assignedTo;
+    private String shareToken;
 
     public static IssueResponse from(Issue i) {
         IssueResponse r = new IssueResponse();
@@ -33,11 +34,12 @@ public class IssueResponse {
         r.setPhotoUrl(i.getPhotoUrl());
         r.setStatus(i.getStatus());
         r.setCreatedBy(i.getCreatedBy());
-        r.setAssignee(i.getAssignee());
         r.setCreatedAt(i.getCreatedAt());
-        r.setUpdatedAt(i.getUpdatedAt());
+        r.setUpdatedAt(i.getUpdatedAt() != null ? i.getUpdatedAt().getTime() : 0L);
         r.setCategory(i.getCategory());
         r.setImageBase64(i.getImageBase64());
+        r.setAssignedTo(i.getAssignedTo());
+        r.setShareToken(i.getShareToken());
         return r;
     }
 }

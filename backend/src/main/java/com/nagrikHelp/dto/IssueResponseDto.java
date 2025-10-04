@@ -31,6 +31,7 @@ public class IssueResponseDto {
     // added media fields so FE can show images
     private String photoUrl;
     private String imageBase64;
+    private String shareToken; // added
 
     @Data
     @NoArgsConstructor
@@ -58,6 +59,7 @@ public class IssueResponseDto {
         // populate new media fields
         dto.setPhotoUrl(i.getPhotoUrl());
         dto.setImageBase64(i.getImageBase64());
+        dto.setShareToken(i.getShareToken());
         return dto;
     }
 

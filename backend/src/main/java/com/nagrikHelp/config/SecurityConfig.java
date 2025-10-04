@@ -34,13 +34,11 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Public browse access for issues
-                        .requestMatchers(HttpMethod.GET, "/api/issues/**").permitAll()
-                        // Citizen-only creation of issues
-                        .requestMatchers(HttpMethod.POST, "/api/issues/**").hasRole("CITIZEN")
-                        // Existing admin/citizen APIs
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/citizen/notifications/stream").permitAll() // SSE manual JWT check
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/api/citizen/**").hasRole("CITIZEN")
+                        .requestMatchers("/api/issues/**").hasRole("CITIZEN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

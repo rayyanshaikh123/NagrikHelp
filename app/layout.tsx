@@ -6,23 +6,27 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "leaflet/dist/leaflet.css"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { SmoothCursor } from "@/components/ui/smooth-cursor"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
+  title: "Civic Issue Reporter",
+  description: "Crowdsourced Civic Issue Reporting & Resolution UI",
   generator: "v0.app",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-        <Analytics />
+    <html lang="en" suppressHydrationWarning>
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} min-h-dvh antialiased`}>
+        {/* Custom smooth cursor */}
+        <ThemeProvider attribute="class" enableSystem defaultTheme="system" disableTransitionOnChange>
+          <div className="cursor-none">
+            <SmoothCursor />
+            <div className="min-h-dvh">{children}</div>
+          </div>
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )

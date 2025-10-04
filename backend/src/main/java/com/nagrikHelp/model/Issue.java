@@ -5,6 +5,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,21 +23,28 @@ public class Issue {
 
     private IssueStatus status;
 
-    // New fields for Phase 2
+    // Phase 2 fields
     private IssueCategory category;
     private String imageBase64;
 
-    // store creator as email (username)
     @Indexed
-    private String createdBy;
-
-    // Additional creator metadata for responses
+    private String createdBy; // creator email (username)
     private String createdById;
     private String createdByName;
 
-    private String assignee; // email of assignee (optional)
+    // Phase 3: assignedTo (friendly staff/team id or name)
+    private String assignedTo;
 
-    // epoch millis for easy FE consumption
-    private long createdAt;
-    private long updatedAt;
+    // Timestamps
+    private long createdAt; // keep epoch millis for existing FE
+    private Date updatedAt; // now a Date per Phase 3 spec
+
+    private String shareToken; // public share token (UUID)
+
+    @Builder.Default
+    private java.util.List<String> followerPhones = new java.util.ArrayList<>(); // phone numbers to notify
+    @Builder.Default
+    private java.util.List<String> followerEmails = new java.util.ArrayList<>();
+    @Builder.Default
+    private java.util.List<String> followerWebhookUrls = new java.util.ArrayList<>();
 }

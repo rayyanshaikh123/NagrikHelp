@@ -9,22 +9,26 @@ import com.nagrikHelp.repository.UserRepository;
 import com.nagrikHelp.service.VoteService;
 import com.nagrikHelp.service.CommentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class IssueService {
 
     private final IssueRepository issueRepository;
     private final UserRepository userRepository;
     private final VoteService voteService;
     private final CommentService commentService;
+    private final NotificationService notificationService;
 
     // Phase 1 existing API (kept for compatibility)
     public IssueResponse createIssue(String createdBy, CreateIssueRequest req) {
@@ -37,7 +41,8 @@ public class IssueService {
                 .status(IssueStatus.OPEN)
                 .createdBy(createdBy)
                 .createdAt(now)
-                .updatedAt(now)
+                .updatedAt(new Date(now))
+                .shareToken(UUID.randomUUID().toString())
                 .build();
         issueRepository.save(issue);
         return IssueResponse.from(issue);
@@ -70,10 +75,7 @@ public class IssueService {
             if (req.getStatus() != null && !req.getStatus().isBlank()) {
                 existing.setStatus(parseStatus(req.getStatus()));
             }
-            if (req.getAssignee() != null) {
-                existing.setAssignee(req.getAssignee().isBlank() ? null : req.getAssignee());
-            }
-            existing.setUpdatedAt(System.currentTimeMillis());
+            existing.setUpdatedAt(new Date());
             issueRepository.save(existing);
             return IssueResponse.from(existing);
         });
@@ -100,7 +102,8 @@ public class IssueService {
                 .createdById(user != null ? user.getId() : null)
                 .createdByName(user != null ? user.getName() : null)
                 .createdAt(now)
-                .updatedAt(now)
+                .updatedAt(new Date(now))
+                .shareToken(UUID.randomUUID().toString())
                 .build();
         issueRepository.save(issue);
         return IssueResponseDto.from(issue);
@@ -130,5 +133,158 @@ public class IssueService {
     // Retain old signature for existing controller usage
     public Optional<IssueResponseDto> getIssueById(String id) {
         return getIssueById(id, null);
+    }
+
+    public Optional<PublicIssueResponse> getIssueByShareToken(String token) {
+        if (token == null || token.isBlank()) return Optional.empty();
+        return issueRepository.findByShareToken(token.trim()).map(i -> {
+            // Ensure backward compatibility for pre-existing issues without token
+            if (i.getShareToken() == null) {
+                i.setShareToken(UUID.randomUUID().toString());
+                issueRepository.save(i);
+            }
+            IssueVoteSummaryDto vs = voteService.summarize(i.getId(), "__anon__");
+            return PublicIssueResponse.from(i, vs.getUpVotes());
+        });
+    }
+
+    // Phase 3 admin methods --------------------------------------------------
+
+    private static final Map<IssueStatus, Set<IssueStatus>> VALID_TRANSITIONS = Map.of(
+            IssueStatus.OPEN, Set.of(IssueStatus.IN_PROGRESS),
+            IssueStatus.IN_PROGRESS, Set.of(IssueStatus.RESOLVED),
+            IssueStatus.RESOLVED, Set.of() // terminal
+    );
+
+    public Optional<IssueResponse> updateIssueStatus(String issueId, IssueStatus nextStatus, String adminUser) {
+        log.info("updateIssueStatus: issueId={}, nextStatus={}, admin={}", issueId, nextStatus, adminUser);
+        return issueRepository.findById(issueId).map(issue -> {
+            IssueStatus current = issue.getStatus();
+            log.debug("updateIssueStatus: currentStatus={}, followers(emails)={}, owner={} ", current,
+                    issue.getFollowerEmails() == null ? 0 : issue.getFollowerEmails().size(), issue.getCreatedBy());
+            if (current == nextStatus) {
+                issue.setUpdatedAt(new Date());
+                issueRepository.save(issue);
+                try {
+                    log.debug("updateIssueStatus: status unchanged; still triggering notifications for id={}", issueId);
+                    notificationService.notifyFollowersOnStatusChange(issue);
+                    notificationService.notifyOwnerOnStatusChange(issue);
+                } catch (Exception ex) { log.warn("updateIssueStatus notify (no change) failed: {}", ex.getMessage()); }
+                return IssueResponse.from(issue);
+            }
+            Set<IssueStatus> allowed = VALID_TRANSITIONS.getOrDefault(current, Collections.emptySet());
+            if (!allowed.contains(nextStatus)) {
+                log.warn("updateIssueStatus: invalid transition {} -> {} for issueId={}", current, nextStatus, issueId);
+                throw new IllegalStateException("Invalid status transition: " + current + " -> " + nextStatus);
+            }
+            issue.setStatus(nextStatus);
+            issue.setUpdatedAt(new Date());
+            issueRepository.save(issue);
+            log.info("updateIssueStatus: saved new status {} for issueId={}", nextStatus, issueId);
+            try {
+                notificationService.notifyFollowersOnStatusChange(issue);
+                notificationService.notifyOwnerOnStatusChange(issue);
+                log.debug("updateIssueStatus: notifications dispatched issueId={}", issueId);
+            } catch (Exception ex) { log.warn("updateIssueStatus notify failed issueId={} error={}", issueId, ex.getMessage()); }
+            return IssueResponse.from(issue);
+        });
+    }
+
+    public Optional<IssueResponse> assignIssue(String issueId, String assignee, String adminUser) {
+        return issueRepository.findById(issueId).map(issue -> {
+            issue.setAssignedTo(assignee == null || assignee.isBlank() ? null : assignee.trim());
+            issue.setUpdatedAt(new Date());
+            issueRepository.save(issue);
+            return IssueResponse.from(issue);
+        });
+    }
+
+    public List<IssueResponse> getIssuesByStatus(IssueStatus status) {
+        if (status == null) {
+            return issueRepository.findAllByOrderByUpdatedAtDesc().stream().map(IssueResponse::from).toList();
+        }
+        return issueRepository.findByStatusOrderByUpdatedAtDesc(status).stream().map(IssueResponse::from).toList();
+    }
+
+    // Monthly resolved report
+    public MonthlyResolvedReport monthlyResolvedReport(int year, int month) { // month 1-12
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.plusMonths(1);
+        Date startDate = Date.from(start.atStartOfDay(zone).toInstant());
+        Date endDate = Date.from(end.atStartOfDay(zone).toInstant());
+        List<Issue> resolved = issueRepository.findByStatusAndUpdatedAtBetween(IssueStatus.RESOLVED, startDate, endDate);
+        Map<LocalDate, Long> counts = resolved.stream().collect(Collectors.groupingBy(i -> i.getUpdatedAt().toInstant().atZone(zone).toLocalDate(), Collectors.counting()));
+        List<MonthlyResolvedReport.DayCount> daily = new ArrayList<>();
+        for (LocalDate d = start; d.isBefore(end); d = d.plusDays(1)) {
+            long c = counts.getOrDefault(d, 0L);
+            if (c > 0) {
+                daily.add(new MonthlyResolvedReport.DayCount(d.toString(), c));
+            }
+        }
+        long total = resolved.size();
+        return new MonthlyResolvedReport(year, month, total, daily);
+    }
+
+    public Optional<IssueResponse> updateCitizenIssue(String userEmail, String issueId, CitizenUpdateIssueRequest req) {
+        return issueRepository.findByIdAndCreatedBy(issueId, userEmail).map(issue -> {
+            boolean changed = false;
+            if (req.getTitle() != null && !req.getTitle().isBlank()) { issue.setTitle(req.getTitle().trim()); changed = true; }
+            if (req.getDescription() != null && !req.getDescription().isBlank()) { issue.setDescription(req.getDescription().trim()); changed = true; }
+            if (req.getLocation() != null && !req.getLocation().isBlank()) { issue.setLocation(req.getLocation().trim()); changed = true; }
+            if (req.getCategory() != null) { issue.setCategory(req.getCategory()); changed = true; }
+            if (req.getImageBase64() != null && !req.getImageBase64().isBlank()) { issue.setImageBase64(req.getImageBase64()); changed = true; }
+            if (changed) {
+                issue.setUpdatedAt(new Date());
+                issueRepository.save(issue);
+            }
+            return IssueResponse.from(issue);
+        });
+    }
+
+    public boolean deleteCitizenIssue(String userEmail, String issueId) {
+        return issueRepository.findByIdAndCreatedBy(issueId, userEmail).map(i -> {
+            issueRepository.deleteById(i.getId());
+            return true;
+        }).orElse(false);
+    }
+
+    public Optional<IssueResponse> followByShareToken(String token, FollowRequest req) {
+        if (token == null || token.isBlank()) return Optional.empty();
+        return issueRepository.findByShareToken(token.trim()).map(issue -> {
+            boolean changed = false;
+            if (req.getPhone() != null && !req.getPhone().isBlank()) {
+                if (!issue.getFollowerPhones().contains(req.getPhone().trim())) {
+                    issue.getFollowerPhones().add(req.getPhone().trim()); changed = true; }
+            }
+            if (req.getEmail() != null && !req.getEmail().isBlank()) {
+                if (!issue.getFollowerEmails().contains(req.getEmail().trim())) {
+                    issue.getFollowerEmails().add(req.getEmail().trim()); changed = true; }
+            }
+            if (req.getWebhookUrl() != null && !req.getWebhookUrl().isBlank()) {
+                if (!issue.getFollowerWebhookUrls().contains(req.getWebhookUrl().trim())) {
+                    issue.getFollowerWebhookUrls().add(req.getWebhookUrl().trim()); changed = true; }
+            }
+            if (changed) {
+                issue.setUpdatedAt(new Date());
+                issueRepository.save(issue);
+            }
+            return IssueResponse.from(issue);
+        });
+    }
+
+    public Optional<IssueResponse> unfollowByShareToken(String token, FollowRequest req) {
+        if (token == null || token.isBlank()) return Optional.empty();
+        return issueRepository.findByShareToken(token.trim()).map(issue -> {
+            boolean changed = false;
+            if (req.getPhone() != null && issue.getFollowerPhones().remove(req.getPhone().trim())) changed = true;
+            if (req.getEmail() != null && issue.getFollowerEmails().remove(req.getEmail().trim())) changed = true;
+            if (req.getWebhookUrl() != null && issue.getFollowerWebhookUrls().remove(req.getWebhookUrl().trim())) changed = true;
+            if (changed) {
+                issue.setUpdatedAt(new Date());
+                issueRepository.save(issue);
+            }
+            return IssueResponse.from(issue);
+        });
     }
 }

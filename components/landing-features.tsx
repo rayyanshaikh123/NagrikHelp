@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Camera, MessagesSquare, ShieldCheck, BarChart3 } from "lucide-react"
+import SpotlightCard from "./spotlight-card"
 
 const FEATURES = [
   {
@@ -35,13 +36,15 @@ export function Features() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {FEATURES.map(({ title, desc, Icon }) => (
-        <Card key={title} className="h-full">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">{title}</CardTitle>
-            <Icon className="h-5 w-5 text-brand" />
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">{desc}</CardContent>
-        </Card>
+        <SpotlightCard key={title} spotlightColor="rgba(5, 213, 255, 0.26)" className="h-full rounded-xl">
+          <Card className="h-full bg-background/60 backdrop-blur-sm border-border/60">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">{title}</CardTitle>
+              <Icon className="h-5 w-5 text-primary" />
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">{desc}</CardContent>
+          </Card>
+        </SpotlightCard>
       ))}
     </div>
   )

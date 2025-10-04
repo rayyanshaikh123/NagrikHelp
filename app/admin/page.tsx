@@ -7,7 +7,7 @@ import DashboardStats from "@/components/dashboard-stats"
 import useSWR from "swr"
 import { getIssues, type Issue, updateIssue } from "@/services/issues"
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import AdminMap from "@/components/admin-map"
 
 export default function AdminPage() {
@@ -19,6 +19,13 @@ export default function AdminPage() {
     else if (role !== "admin") router.replace("/citizen")
   }, [router])
 
+  const { data: allIssues, mutate } = useSWR(["all-issues"], () => getIssues())
+  const issues: Issue[] = allIssues || []
+  const searchParams = useSearchParams()
+  const statusParam = (searchParams?.get("status") || "all").toLowerCase()
+  const filter = ["pending", "in-progress", "resolved"].includes(statusParam) ? statusParam : (statusParam === "all" ? "all" : "all")
+  const filtered = filter === "all" ? issues : issues.filter(i => i.status === filter)
+
   return (
     <main className="min-h-dvh">
       <Navbar />
@@ -28,18 +35,16 @@ export default function AdminPage() {
           <h1 className="text-2xl font-semibold text-balance">Admin Dashboard</h1>
           <div className="space-y-2">
             <h2 className="text-lg font-medium">Issues Map</h2>
-            <AdminMap height={380} />
+            <AdminMap height={380} issues={filtered} />
           </div>
-          <AdminIssues />
+          <AdminIssues issues={issues} filtered={filtered} onUpdate={async (id, patch) => { await updateIssue(id, patch); mutate() }} />
         </section>
       </div>
     </main>
   )
 }
 
-function AdminIssues() {
-  const { data, mutate } = useSWR(["all-issues"], () => getIssues())
-  const issues: Issue[] = data || []
+function AdminIssues({ issues, filtered, onUpdate }: { issues: Issue[]; filtered: Issue[]; onUpdate: (id: string, patch: Partial<Issue>) => Promise<void> }) {
   const counts = {
     all: issues.length,
     pending: issues.filter((i) => i.status === "pending").length,
@@ -47,14 +52,7 @@ function AdminIssues() {
     resolved: issues.filter((i) => i.status === "resolved").length,
   }
 
-  const filter =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("status") || "all" : "all"
-  const filtered = filter === "all" ? issues : issues.filter((i) => i.status === filter)
-
-  async function handleUpdate(id: string, patch: Partial<Issue>) {
-    await updateIssue(id, patch)
-    mutate()
-  }
+  async function handleUpdate(id: string, patch: Partial<Issue>) { await onUpdate(id, patch) }
 
   return (
     <div className="space-y-6">

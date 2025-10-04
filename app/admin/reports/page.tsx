@@ -2,10 +2,12 @@
 
 import Navbar from "@/components/navbar"
 import Sidebar from "@/components/sidebar"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import useSWR from "swr"
 import { getIssues, type Issue } from "@/services/issues"
+import { getMonthlyResolvedReport, type MonthlyResolvedReport, downloadMonthlyResolvedPdf } from "@/services/admin"
+import { Button } from "@/components/ui/button"
 import {
   BarChart,
   Bar,
@@ -68,17 +70,39 @@ function ReportsContent() {
   }
   const timelineData = days.map((d) => ({ day: d.slice(5), created: creationsByDay[d] }))
 
-  const assigneeCounts = new Map<string, number>()
-  for (const i of issues) {
-    const key = i.assignee || "Unassigned"
-    assigneeCounts.set(key, (assigneeCounts.get(key) || 0) + 1)
-  }
-  const topAssignees = Array.from(assigneeCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-    .map(([name, count]) => ({ name, count }))
+  // Monthly resolved report state
+  const now = new Date()
+  const [report, setReport] = useState<MonthlyResolvedReport | null>(null)
+  const [loadingReport, setLoadingReport] = useState(false)
+  const [reportMonth, setReportMonth] = useState(now.getMonth() + 1) // 1-12
+  const [reportYear, setReportYear] = useState(now.getFullYear())
 
-  const colors = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#8B5CF6"]
+  async function generateReport() {
+    try {
+      setLoadingReport(true)
+      const r = await getMonthlyResolvedReport(reportYear, reportMonth)
+      setReport(r)
+      // Auto trigger PDF download after successful generation
+      await downloadMonthlyResolvedPdf(reportYear, reportMonth)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingReport(false)
+    }
+  }
+
+  async function downloadPdf() {
+    try {
+      setLoadingReport(true)
+      await downloadMonthlyResolvedPdf(reportYear, reportMonth)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingReport(false)
+    }
+  }
+
+  const dailyData = report ? report.daily.map(d => ({ date: d.date.slice(8), count: d.count })) : []
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -108,19 +132,59 @@ function ReportsContent() {
         </ResponsiveContainer>
       </div>
 
-      <div className="border rounded-lg p-4 lg:col-span-2">
-        <h2 className="font-medium mb-2">Top Assignees</h2>
-        <ResponsiveContainer width="100%" height={320}>
-          <PieChart>
-            <Pie data={topAssignees} dataKey="count" nameKey="name" innerRadius={60} outerRadius={100} paddingAngle={2}>
-              {topAssignees.map((_, idx) => (
-                <Cell key={idx} fill={colors[idx % colors.length]} />
+      <div className="border rounded-lg p-4 lg:col-span-2 space-y-4">
+        <div className="flex flex-wrap items-end gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Month</label>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={reportMonth}
+              onChange={(e) => setReportMonth(Number(e.target.value))}
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                <option key={m} value={m}>{m}</option>
               ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Year</label>
+            <input
+              type="number"
+              className="border rounded px-2 py-1 w-28 text-sm"
+              value={reportYear}
+              onChange={(e) => setReportYear(Number(e.target.value))}
+            />
+          </div>
+          <Button disabled={loadingReport} onClick={generateReport}>
+            {loadingReport ? "Generating..." : "Generate Monthly Report"}
+          </Button>
+          {report && !loadingReport && (
+            <Button variant="outline" onClick={downloadPdf}>Download PDF</Button>
+          )}
+          {report && (
+            <div className="text-sm text-muted-foreground">
+              Total Resolved: <span className="font-medium text-foreground">{report.totalResolved}</span>
+            </div>
+          )}
+        </div>
+        {report && (
+          <div>
+            <h2 className="font-medium mb-2">Resolved Issues (Daily)</h2>
+            {dailyData.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No resolved issues this month.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#3B82F6" radius={[4,4,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
