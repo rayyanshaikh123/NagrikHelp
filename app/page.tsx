@@ -192,24 +192,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ (trimmed) */}
+      {/* FAQ */}
       <section id="faq" ref={faqRef} className="mx-auto w-full max-w-5xl px-6 py-16 md:py-20">
         <div className="mb-8 flex flex-col gap-2">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">FAQ</h2>
-          <p className="text-sm text-muted-foreground">Quick answers about the demo.</p>
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Frequently Asked Questions</h2>
+          <p className="text-sm text-muted-foreground">Key details about how NagrikHelp works for citizens and administrations.</p>
         </div>
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="f1">
-            <AccordionTrigger className="text-left">Is this production ready?</AccordionTrigger>
-            <AccordionContent className="text-sm text-muted-foreground">This UI is a frontend demonstration. It is structured so a backend (e.g. Spring Boot) can be wired in easily.</AccordionContent>
+            <AccordionTrigger className="text-left">What is NagrikHelp?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">NagrikHelp is a civic issue reporting platform that lets citizens submit geo‑tagged problems (like potholes, streetlights, sanitation) and track resolution in a transparent status flow used by local administrators.</AccordionContent>
           </AccordionItem>
           <AccordionItem value="f2">
-            <AccordionTrigger className="text-left">Does it support real-time updates?</AccordionTrigger>
-            <AccordionContent className="text-sm text-muted-foreground">The architecture anticipates SSE / WebSocket integration; placeholders mimic the interaction model.</AccordionContent>
+            <AccordionTrigger className="text-left">How do I report an issue?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">Click “Report an Issue”, add a clear title, choose a category, allow location (or enter an address), optionally attach a photo, and submit. Your report receives an ID and starts in Pending status.</AccordionContent>
           </AccordionItem>
           <AccordionItem value="f3">
-            <AccordionTrigger className="text-left">Can I customize categories?</AccordionTrigger>
-            <AccordionContent className="text-sm text-muted-foreground">Yes—category & status taxonomies can be adapted to local governance needs.</AccordionContent>
+            <AccordionTrigger className="text-left">Do I need an account to submit?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">Basic browsing is open. Creating an account (or signing in) is required to submit, vote, comment, or receive status notifications so we can prevent spam and provide update alerts.</AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="f4">
+            <AccordionTrigger className="text-left">What statuses will I see?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">Typical workflow: Pending → In&nbsp;Progress → Awaiting Verification (optional) → Resolved. Admins may also mark issues as Duplicate, Won’t Fix, or Need Info if clarification is required.</AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="f5">
+            <AccordionTrigger className="text-left">Can others interact with my report?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">Yes. Other citizens can up‑vote to signal priority and add constructive comments. Administrators can request clarification or post progress notes (e.g. “Crew scheduled for Friday”).</AccordionContent>
           </AccordionItem>
         </Accordion>
       </section>

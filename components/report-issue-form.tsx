@@ -83,7 +83,7 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
         fetchAbort.current?.abort()
         const ac = new AbortController()
         fetchAbort.current = ac
-        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(q)}`
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=10&q=${encodeURIComponent(q)}`
         const res = await fetch(url, { headers: { "Accept-Language": "en" }, signal: ac.signal })
         const data: any[] = await res.json()
         setSuggestions(data.map((d) => ({ display_name: d.display_name, lat: d.lat, lon: d.lon })))
@@ -104,14 +104,22 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
   const geocode = useCallback(async () => {
     if (!query.trim()) return
     try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=10&q=${encodeURIComponent(query)}`
       const res = await fetch(url, { headers: { "Accept-Language": "en" } })
       const data: any[] = await res.json()
       if (!data.length) return toast({ title: "No results found" })
-      const best = data[0]
-      const p: [number, number] = [parseFloat(best.lat), parseFloat(best.lon)]
-      setPos(p)
-      setLocation(toLocString(p, best.display_name))
+      const mapped = data.map((d) => ({ display_name: d.display_name, lat: d.lat, lon: d.lon }))
+      setSuggestions(mapped)
+      if (mapped.length === 1) {
+        // auto-select only if single match
+        const single = mapped[0]
+        const p: [number, number] = [parseFloat(single.lat), parseFloat(single.lon)]
+        setPos(p)
+        setLocation(`${p[0].toFixed(6)},${p[1].toFixed(6)} | ${single.display_name}`)
+        setSuggestions([])
+      } else {
+        toast({ title: "Select a location", description: `Showing ${mapped.length} suggestions` })
+      }
     } catch (e) {
       toast({ title: "Search failed" })
     }
@@ -167,7 +175,7 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
             />
 
             {/* Location controls */}
-            <div className="grid gap-2">
+            <div className="grid gap-2 relative">
               <Label>Location</Label>
               <div className="relative">
                 <div className="flex gap-2 flex-wrap">
@@ -185,18 +193,18 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
                   </Button>
                 </div>
                 {suggestions.length > 0 ? (
-                  <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-sm">
+                  <div className="absolute z-[10000] mt-1 w-full max-h-60 overflow-auto rounded-md border border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 text-popover-foreground shadow-lg isolation-auto">
                     {suggestions.map((s, idx) => (
                       <button
                         type="button"
                         key={idx}
-                        className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground text-sm"
+                        className="w-full text-left px-3 py-2 hover:bg-accent/70 hover:text-accent-foreground text-sm transition-colors"
                         onClick={() => pickSuggestion(s)}
                       >
                         {s.display_name}
                       </button>
                     ))}
-                    <div className="px-3 py-1 text-[10px] text-muted-foreground">Search by OpenStreetMap</div>
+                    <div className="sticky bottom-0 px-3 py-1 text-[10px] text-muted-foreground bg-background/90 backdrop-blur-sm">Search by OpenStreetMap</div>
                   </div>
                 ) : null}
               </div>
@@ -205,7 +213,7 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
-              <div className="rounded-lg overflow-hidden border">
+              <div className="rounded-lg overflow-hidden border relative z-0">
                 {/* Map */}
                 <div className="h-64 w-full">
                   {typeof window !== "undefined" ? (

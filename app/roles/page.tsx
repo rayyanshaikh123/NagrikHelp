@@ -14,39 +14,33 @@ export default function RolesPage() {
   }, [])
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-6 py-10">
-      <header className="mb-8">
-        <h1 className="text-balance text-3xl font-semibold">Choose your role</h1>
-        <p className="text-muted-foreground leading-relaxed">
-          Continue as a Citizen to register and report issues, or as an Admin to log in and manage issues.
-        </p>
+    <main className="mx-auto w-full max-w-4xl px-6 py-14">
+      <header className="mb-10 space-y-3">
+        <h1 className="text-balance text-3xl md:text-4xl font-semibold tracking-tight">Select a Role</h1>
+        <p className="text-muted-foreground text-sm md:text-base max-w-prose">Choose how you want to explore NagrikHelp. Citizens submit & track issues. Admins manage the civic resolution workflow.</p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         <RoleCard
           title="Citizen"
-          description="Report civic issues and track their progress."
-          onSelect={() => router.push("/register")}
+          description="Submit location‑aware issues, attach photos, vote & follow progress."
+          avatarSrc="/logo/people-together.png"
+          avatarFallback="C"
+          layout="vertical"
+          onSelect={() => router.push('/citizen')}
         />
         <RoleCard
           title="Admin"
-          description="Review, assign, and resolve reported issues."
-          onSelect={() => router.push("/login")}
+          description="Review new reports, update statuses, and ensure timely resolution."
+          avatarSrc="/logo/administrator.png"
+          avatarFallback="A"
+          layout="vertical"
+          onSelect={() => router.push('/admin')}
         />
       </div>
 
-      <div className="mt-8 flex items-center gap-3">
-        {!role ? (
-          <>
-            <Button onClick={() => router.push("/login")}>Login</Button>
-            <Button variant="secondary" onClick={() => router.push("/register")}>Register</Button>
-          </>
-        ) : (
-          <Button variant="ghost" onClick={() => router.push(role === "admin" ? "/admin" : "/citizen")}>
-            Go to Dashboard
-          </Button>
-        )}
-        <Button variant="ghost" onClick={() => router.push("/")}>Back to Landing</Button>
+      <div className="mt-10">
+        <Button variant="ghost" onClick={() => router.push('/')}>← Back to Home</Button>
       </div>
     </main>
   )

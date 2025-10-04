@@ -160,7 +160,7 @@ export default function IssueCard({
   }
 
   return (
-    <Card>
+    <Card className="relative overflow-hidden rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 shadow-sm transition hover:shadow-md hover:border-neutral-400 dark:hover:border-neutral-600">
       <CardHeader className="pb-2 flex flex-row items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           {mode === "citizen" ? (
@@ -181,11 +181,11 @@ export default function IssueCard({
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
         <div className="flex items-center flex-wrap gap-2 text-xs">
-          {issue.category ? <span className="px-2 py-1 rounded bg-muted">{issue.category}</span> : null}
-          <span className="px-2 py-1 rounded bg-muted">{formatStatus(issue.status)}</span>
+          {issue.category ? <span className="px-2 py-1 rounded-md bg-neutral-300 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 border border-neutral-400 dark:border-neutral-500">{issue.category}</span> : null}
+          <span className="px-2 py-1 rounded-md bg-neutral-300 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 border border-neutral-400 dark:border-neutral-500">{formatStatus(issue.status)}</span>
           {(issue.commentsCount ?? 0) > 0 ? <span className="text-muted-foreground">{issue.commentsCount} comments</span> : null}
         </div>
-        <div className="relative w-full h-36 overflow-hidden rounded-md border bg-muted/40">
+        <div className="relative w-full h-36 overflow-hidden rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-700/60">
           {issue.imageBase64 || issue.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -204,7 +204,7 @@ export default function IssueCard({
             />
           )}
           {mode === "citizen" ? (
-            <div className="absolute top-2 right-2 flex items-center gap-2 rounded-md bg-background/90 px-2 py-1 shadow-sm border">
+            <div className="absolute top-2 right-2 flex items-center gap-2 rounded-md bg-neutral-900/80 dark:bg-neutral-950/70 text-neutral-50 px-2 py-1 shadow-xs border border-neutral-600 text-[11px]">
               <button
                 type="button"
                 disabled={voting}
@@ -249,7 +249,7 @@ export default function IssueCard({
         ) : null}
 
         {isOwner && mode === 'citizen' ? (
-          <div className="flex items-center justify-end gap-2 pt-1 border-t mt-2 pt-2">
+          <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-300 dark:border-neutral-700 mt-2 pt-3">
             <Dialog open={editOpen} onOpenChange={setEditOpen}>
               <DialogTrigger asChild>
                 <Button variant="secondary" size="sm">Edit</Button>
@@ -284,7 +284,7 @@ export default function IssueCard({
         ) : null}
 
         {mode === "citizen" ? (
-          <div className="pt-1 flex items-center justify-between">
+          <div className="pt-1 flex items-center justify-between text-[11px] text-neutral-600 dark:text-neutral-300">
             <Link href={`/citizen/public/${issue.id}`} className="text-xs font-medium text-primary hover:underline">
               View details →
             </Link>

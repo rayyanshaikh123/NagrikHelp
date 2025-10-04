@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import LightRays from './LightRays'
+import Image from 'next/image'
 
 export function Hero() {
   return (
@@ -34,56 +35,63 @@ export function Hero() {
           <div className="flex flex-col gap-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-primary/50" /> Open civic collaboration
+                <span className="h-2 w-2 rounded-full bg-primary/50" /> Empowering local governance
               </div>
               <h1 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight text-balance">
-                A minimal platform to report & track civic issues
+                NagrikHelp: Report, Track & Resolve Civic Issues Faster
               </h1>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-prose">
-                Submit location‑aware reports with photos, follow transparent status updates, and help communities
-                prioritize what matters—without UI noise.
+                NagrikHelp connects citizens and municipal departments in a single transparent workflow. Submit geo‑tagged issues with photos, monitor progress, collaborate through comments, and close the feedback loop with verified resolutions.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button asChild size="sm" className="sm:w-auto w-full">
-                <Link href="/roles">Get Started</Link>
+                <Link href="/citizen/create">Report an Issue</Link>
               </Button>
               <Button asChild size="sm" variant="outline" className="sm:w-auto w-full">
-                <Link href="#features">View Features</Link>
+                <Link href="/citizen/public">Track Issues</Link>
               </Button>
               <Button asChild size="sm" variant="ghost" className="sm:w-auto w-full">
-                <Link href="/citizen/public">Public Feed</Link>
+                <Link href="/roles">For Administrations</Link>
               </Button>
             </div>
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {FEATURE_PILLS.map(p => (
                 <Badge key={p} variant="outline" className="border-border text-[10px] font-normal tracking-wide">
                   {p}
                 </Badge>
               ))}
             </div>
-            <div className="flex items-center gap-4 pt-4 text-[11px] text-muted-foreground">
-              <span>Low-friction • Accessible • Transparent</span>
+            <div className="flex flex-wrap items-center gap-4 pt-2 text-[11px] text-muted-foreground">
+              <span>Real-time transparency</span>
               <span className="hidden sm:inline h-1 w-1 rounded-full bg-muted-foreground/40" />
-              <span className="hidden sm:inline">UI-only demo</span>
+              <span>Mobile-friendly</span>
+              <span className="hidden sm:inline h-1 w-1 rounded-full bg-muted-foreground/40" />
+              <span>Privacy-aware uploads</span>
             </div>
           </div>
 
-          {/* Right Column (Visual Placeholder / Future Illustration) */}
+          {/* Right Column (Live style metrics panel) */}
           <div className="relative hidden md:flex">
-            <div className="relative w-full aspect-[4/3] rounded-xl border bg-card/50 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_35%,var(--color-primary)/10,transparent_70%)]" />
-              <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(0,0,0,0.03))] dark:bg-[linear-gradient(to_bottom,transparent,rgba(255,255,255,0.03))]" />
-              <div className="p-6 text-center space-y-4 max-w-sm">
-                <h2 className="text-sm font-medium tracking-wide text-foreground/90">Interface Preview</h2>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  This panel can showcase a map snapshot, an issue detail mock, or a short explainer animation.
-                </p>
-                <div className="grid gap-2 text-left text-[11px] rounded-lg border p-3 bg-background/60">
-                  <Row label="Report" value="Pothole on Main St" />
-                  <Row label="Status" value="Pending" />
-                  <Row label="Votes" value="+12" />
-                  <Row label="ETA" value="2–3 days" />
+            <div className="relative w-full aspect-[4/3] rounded-xl border bg-card/60 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_38%,var(--color-primary)/8,transparent_72%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.04),transparent_55%,rgba(0,0,0,0.06))] dark:bg-[linear-gradient(to_bottom,rgba(255,255,255,0.05),transparent_55%,rgba(255,255,255,0.08))]" />
+              {/* Map Image Placeholder */}
+              <Image
+                src="/map.jpeg"
+                alt="City civic issues map preview"
+                fill
+                priority
+                className="object-cover"
+              />
+              {/* Subtle overlay for legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-background/10 to-transparent" />
+              {/* Metrics pill */}
+              <div className="absolute bottom-4 left-4 flex flex-col gap-1 text-[10px] px-3 py-2 rounded-md bg-background/80 backdrop-blur border border-border/60 shadow-sm">
+                <span className="font-medium tracking-wide">Live Snapshot</span>
+                <div className="flex gap-3">
+                  <span className="text-muted-foreground">Active: <strong className="text-foreground/90">128</strong></span>
+                  <span className="text-muted-foreground">Resolved: <strong className="text-foreground/90">94</strong></span>
                 </div>
               </div>
               <div className="absolute -inset-px rounded-xl pointer-events-none border border-border/60" />
@@ -105,9 +113,9 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const FEATURE_PILLS = [
-  "Structured reports",
-  "Location-aware",
-  "Photo evidence",
-  "Status tracking",
-  "Lightweight UI",
+  'Geo-tagged reports',
+  'Photo attachments',
+  'Status lifecycle',
+  'Community feedback',
+  'Analytics-ready',
 ]

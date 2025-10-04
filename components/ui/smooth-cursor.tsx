@@ -16,6 +16,7 @@ export interface SmoothCursorProps {
     mass: number
     restDelta: number
   }
+  zIndex?: number // added configurable z-index
 }
 
 const DefaultCursorSVG: FC = () => {
@@ -88,6 +89,7 @@ export function SmoothCursor({
     mass: 1,
     restDelta: 0.001,
   },
+  zIndex = 500,
 }: SmoothCursorProps) {
   const [isMoving, setIsMoving] = useState(false)
   const lastMousePos = useRef<Position>({ x: 0, y: 0 })
@@ -190,7 +192,7 @@ export function SmoothCursor({
         translateY: "-50%",
         rotate: rotation,
         scale: scale,
-        zIndex: 100,
+        zIndex, // updated from static 100
         pointerEvents: "none",
         willChange: "transform",
       }}

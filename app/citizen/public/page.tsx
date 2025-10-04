@@ -19,8 +19,6 @@ const CATEGORY_LIST = [
   "OTHER",
 ]
 
-
-
 export default function PublicPostsPage() {
   const router = useRouter()
   const [category, setCategory] = useState<string>("All")
@@ -63,34 +61,38 @@ export default function PublicPostsPage() {
   }, [category])
 
   return (
-    <main className="min-h-dvh">
+    <main className="min-h-dvh bg-neutral-50 dark:bg-neutral-900/95">
       <Navbar />
-      <section className="mx-auto max-w-6xl p-6 space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <h1 className="text-2xl font-semibold">Public Posts</h1>
+      <section className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+        <header className="space-y-3">
+          <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">Public Issues</h1>
+          <p className="text-sm text-neutral-600 dark:text-neutral-300 max-w-prose">Browse recently reported civic issues. Filter by category and open any card for full detail and activity.</p>
+        </header>
+        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800/70 px-4 py-3">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Category</span>
+            <span className="text-[13px] font-medium text-neutral-700 dark:text-neutral-200">Category:</span>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-48 h-9 bg-white/80 dark:bg-neutral-900/60 border-neutral-300 dark:border-neutral-600 text-sm">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-72">
                 {CATEGORY_LIST.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
+                  <SelectItem key={c} value={c} className="text-[13px]">{c}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+          <div className="ml-auto text-[11px] text-neutral-500 dark:text-neutral-400">Showing {Math.min(visible, filtered.length)} of {filtered.length}</div>
         </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.slice(0, visible).map((issue) => (
             <IssueCard key={issue.id} issue={issue} mode="citizen" />
           ))}
         </div>
         <div ref={sentinelRef} />
+        {filtered.length === 0 && (
+          <div className="rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-100/60 dark:bg-neutral-800/40 p-8 text-center text-sm text-neutral-500 dark:text-neutral-400">No issues found for this category.</div>
+        )}
       </section>
     </main>
   )
