@@ -122,7 +122,9 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground; }
+  /* Use Inter (provided by next/font in layout) when available, fall back to system fonts */
+  :root { --ui-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+  body { @apply bg-background text-foreground; font-family: var(--font-inter, var(--ui-font)); font-feature-settings: "rlig" 1, "calt" 1; }
 
   /* Custom smooth cursor overrides */
   .cursor-none, .cursor-none * { cursor: none !important; }

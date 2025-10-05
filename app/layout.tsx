@@ -22,6 +22,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preconnects for Google Fonts */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Load Inter stylesheet */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+        <noscript>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+        </noscript>
+      </head>
       <body className={`font-sans ${inter.variable} ${GeistSans.variable} ${GeistMono.variable} min-h-dvh antialiased`}>
         {/* Custom smooth cursor */}
         <ThemeProvider attribute="class" enableSystem defaultTheme="system" disableTransitionOnChange>

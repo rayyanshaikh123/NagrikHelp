@@ -12,11 +12,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // Allow the React dev server to access our API during development
-        registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:3000")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .maxAge(3600);
+    // Permit localhost origins on any port during development. If you want
+    // to lock this down for production, change to explicit origins.
+    registry.addMapping("/api/**")
+        .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*")
+        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        .allowedHeaders("*")
+        .allowCredentials(true)
+        .maxAge(3600);
     }
 }

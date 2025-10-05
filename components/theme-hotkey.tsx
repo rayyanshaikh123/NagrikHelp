@@ -6,7 +6,8 @@ export function ThemeHotkey() {
   const { theme, resolvedTheme, setTheme } = useTheme()
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key.toLowerCase() !== 't' || e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return
+      const key = String(e?.key ?? '').toLowerCase()
+      if (key !== 't' || e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return
       const target = e.target as HTMLElement | null
       if (!target) return
       const tag = target.tagName
