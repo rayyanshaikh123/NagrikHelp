@@ -156,4 +156,22 @@ public class NotificationService {
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
     private String truncate(String v, int max) { if (v == null) return ""; return v.length() <= max ? v : v.substring(0, max - 3) + "..."; }
     private String escape(String v) { if (v == null) return ""; return v.replace("\\", "\\\\").replace("\"", "\\\""); }
+
+    /**
+     * Send an SMS message to the given phone number.
+     *
+     * This implementation is a safe no-op if no SMS provider is configured. It
+     * logs the attempt so callers (and tests) can observe behavior. If you want
+     * to enable real SMS sending, replace the body with a provider integration
+     * (Twilio, MessageBird, etc.) and add configuration properties.
+     */
+    public void sendSms(String phoneE164, String message) {
+        if (phoneE164 == null || phoneE164.isBlank() || message == null || message.isBlank()) {
+            log.debug("sendSms called with empty phone or message; skipping");
+            return;
+        }
+        // Currently no SMS provider configured: log and return. This prevents
+        // runtime failures and keeps behavior testable.
+        log.info("(noop) sendSms to {} message={}", phoneE164, truncate(message, 160));
+    }
 }
