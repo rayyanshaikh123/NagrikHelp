@@ -126,42 +126,48 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" ref={howRef} className="bg-muted/30 border-y">
-        <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
-          <div className="mb-10 flex flex-col gap-2">
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">How it works</h2>
+      <section id="how-it-works" ref={howRef} className="bg-muted/30 border-y overflow-hidden how-it-works-section">
+        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-12 md:py-20">
+          <div className="mb-8 md:mb-10 flex flex-col gap-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight">How it works</h2>
             <p className="text-sm text-muted-foreground max-w-prose">A streamlined three‑step civic reporting loop.</p>
           </div>
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-8 md:gap-10">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 sm:gap-6 md:gap-8 lg:gap-10">
             {/* Report */}
-            <div className="flex flex-col items-center gap-4 flex-1">
-              <PhoneFlowDemo staticStep="report" sectionActive={howActive} />
-              <h3 className="text-sm font-medium tracking-wide">Report</h3>
-              {/* Mobile downward arrow to next step */}
-              <div className="md:hidden flex justify-center pt-1" aria-hidden>
-                <ArrowDown className="h-6 w-6 text-muted-foreground" />
+            <div className="flex flex-col items-center gap-3 sm:gap-4 lg:gap-5 flex-1 min-w-0">
+              <div className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px] lg:max-w-none">
+                <PhoneFlowDemo staticStep="report" sectionActive={howActive} />
+              </div>
+              <h3 className="text-xs sm:text-sm font-medium tracking-wide">Report</h3>
+              {/* Mobile/tablet downward arrow to next step */}
+              <div className="lg:hidden flex justify-center pt-1" aria-hidden>
+                <ArrowDown className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
               </div>
             </div>
             {/* Desktop arrow */}
-            <div className="hidden md:flex items-center justify-center" aria-hidden>
-              <ArrowRight className="h-10 w-10 text-muted-foreground" />
+            <div className="hidden lg:flex items-center justify-center flex-shrink-0" aria-hidden>
+              <ArrowRight className="h-8 w-8 xl:h-10 xl:w-10 text-muted-foreground" />
             </div>
             {/* Track */}
-            <div className="flex flex-col items-center gap-4 flex-1">
-              <PhoneFlowDemo staticStep="track" sectionActive={howActive} />
-              <h3 className="text-sm font-medium tracking-wide">Track</h3>
-              <div className="md:hidden flex justify-center pt-1" aria-hidden>
-                <ArrowDown className="h-6 w-6 text-muted-foreground" />
+            <div className="flex flex-col items-center gap-3 sm:gap-4 lg:gap-5 flex-1 min-w-0">
+              <div className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px] lg:max-w-none">
+                <PhoneFlowDemo staticStep="track" sectionActive={howActive} />
+              </div>
+              <h3 className="text-xs sm:text-sm font-medium tracking-wide">Track</h3>
+              <div className="lg:hidden flex justify-center pt-1" aria-hidden>
+                <ArrowDown className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
               </div>
             </div>
             {/* Desktop arrow */}
-            <div className="hidden md:flex items-center justify-center" aria-hidden>
-              <ArrowRight className="h-10 w-10 text-muted-foreground" />
+            <div className="hidden lg:flex items-center justify-center flex-shrink-0" aria-hidden>
+              <ArrowRight className="h-8 w-8 xl:h-10 xl:w-10 text-muted-foreground" />
             </div>
             {/* Resolve */}
-            <div className="flex flex-col items-center gap-4 flex-1">
-              <PhoneFlowDemo staticStep="resolve" sectionActive={howActive} />
-              <h3 className="text-sm font-medium tracking-wide">Resolve</h3>
+            <div className="flex flex-col items-center gap-3 sm:gap-4 lg:gap-5 flex-1 min-w-0">
+              <div className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px] lg:max-w-none">
+                <PhoneFlowDemo staticStep="resolve" sectionActive={howActive} />
+              </div>
+              <h3 className="text-xs sm:text-sm font-medium tracking-wide">Resolve</h3>
             </div>
           </div>
         </div>

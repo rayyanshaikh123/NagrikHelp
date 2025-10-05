@@ -124,15 +124,21 @@
   * {
     @apply border-border outline-ring/50;
   }
-  /* Use Inter (provided by next/font in layout) when available, fall back to system fonts */
+  /* Use Plus Jakarta Sans (provided by next/font in layout) when available, fall back to system fonts */
   :root {
-    --ui-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    --ui-font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto,
       "Helvetica Neue", Arial;
+    --brand-font: "Poppins", "Plus Jakarta Sans", system-ui, -apple-system,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial;
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-inter, var(--ui-font));
+    font-family: var(--font-jakarta, var(--ui-font));
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  html {
+    overflow-x: hidden; /* Prevent horizontal scroll */
   }
 
   /* Custom smooth cursor overrides */
@@ -161,4 +167,42 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Safari and Chrome */
   }
+}
+
+/* Specific fixes for tablet/medium screen sizes */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .how-it-works-section {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Blinking indicator animation */
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  75% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink-indicator {
+  animation: blink 3s ease-in-out infinite;
+}
+
+/* Brand font utility */
+.font-brand {
+  font-family: var(--font-poppins, var(--brand-font));
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }

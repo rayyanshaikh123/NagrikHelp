@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import LightRays from './LightRays'
 import Image from 'next/image'
+import { FlipWords } from "@/components/ui/flip-words"
 
 export function Hero() {
   return (
@@ -35,13 +36,13 @@ export function Hero() {
           <div className="flex flex-col gap-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-primary/50" /> Empowering local governance
+                <span className="h-2 w-2 rounded-full bg-primary/50 blink-indicator" /> Empowering local governance
               </div>
               <h1 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight text-balance">
-                NagrikHelp: Report, Track & Resolve Civic Issues Faster
+                <span className="font-brand">NagrikHelp</span>: <FlipWords words={["Report", "Track", "Resolve"]} duration={2500} className="text-primary" /> <span className="inline-block">Civic Issues Faster</span>
               </h1>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-prose">
-                NagrikHelp connects citizens and municipal departments in a single transparent workflow. Submit geo‑tagged issues with photos, monitor progress, collaborate through comments, and close the feedback loop with verified resolutions.
+                Connect citizens and municipal departments in a transparent workflow. Submit geo‑tagged issues, monitor progress, and close the feedback loop with verified resolutions.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -63,11 +64,9 @@ export function Hero() {
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-4 pt-2 text-[11px] text-muted-foreground">
-              <span>Real-time transparency</span>
+              <span>Real-time updates</span>
               <span className="hidden sm:inline h-1 w-1 rounded-full bg-muted-foreground/40" />
               <span>Mobile-friendly</span>
-              <span className="hidden sm:inline h-1 w-1 rounded-full bg-muted-foreground/40" />
-              <span>Privacy-aware uploads</span>
             </div>
           </div>
 
@@ -115,7 +114,6 @@ function Row({ label, value }: { label: string; value: string }) {
 const FEATURE_PILLS = [
   'Geo-tagged reports',
   'Photo attachments',
-  'Status lifecycle',
+  'Status tracking',
   'Community feedback',
-  'Analytics-ready',
 ]
