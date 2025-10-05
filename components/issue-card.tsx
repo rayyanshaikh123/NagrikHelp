@@ -199,7 +199,7 @@ export default function IssueCard({
   }
 
   return (
-    <Card className="relative overflow-hidden rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 shadow-sm transition hover:shadow-md hover:border-neutral-400 dark:hover:border-neutral-600">
+    <Card className="relative overflow-hidden rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 shadow-sm transition hover:shadow-md hover:border-neutral-400 dark:hover:border-neutral-600 h-full">
       <CardHeader className="pb-2 flex flex-row items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           {mode === "citizen" ? (
