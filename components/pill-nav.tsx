@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import GlassSurface from './glass-surface'
+import { useIsMobile } from './ui/use-mobile'
 
 interface PillNavItem {
   label: string
@@ -46,6 +47,7 @@ export default function PillNav({
   const [rect, setRect] = useState<{ x: number; w: number } | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const isMobile = useIsMobile()
 
   useLayoutEffect(() => {
     const idx = hoverIndex !== null ? hoverIndex : items.findIndex(i => active.startsWith(i.href))
@@ -68,14 +70,14 @@ export default function PillNav({
       width={undefined}
       borderRadius={glass ? 28 : undefined}
     >
-      <div className="flex items-center gap-4" ref={containerRef}>
+      <div className={cn("flex items-center gap-6", isMobile && "gap-2")} ref={containerRef}>
         <Link href="/" className="flex items-center gap-2 shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logo} alt={logoAlt} className="h-8 w-8 object-contain" />
-          <span className="text-sm font-semibold tracking-tight" style={{ color: baseColor }}>{logoAlt}</span>
+          {!isMobile && <span className="text-sm font-semibold tracking-tight" style={{ color: baseColor }}>{logoAlt}</span>}
         </Link>
-        <nav className="relative flex-1 overflow-x-auto scrollbar-hide">
-          <div className="relative flex items-center gap-1 whitespace-nowrap px-2">
+        <nav className="relative flex-1">
+          <div className={cn("relative flex items-center gap-1", isMobile && "overflow-x-auto scrollbar-hide")}>
             {rect && (
               <div
                 className="absolute top-0 bottom-0 my-[6px] rounded-full transition-all duration-300 shadow-md"
@@ -98,8 +100,9 @@ export default function PillNav({
                     onMouseEnter={() => setHoverIndex(i)}
                     onMouseLeave={() => setHoverIndex(null)}
                     className={cn(
-                      'relative z-10 px-4 h-10 rounded-full text-sm font-medium tracking-wide transition-colors inline-flex items-center justify-center',
-                      on ? 'text-white' : 'text-slate-300 hover:text-white'
+                      'relative z-10 px-4 h-10 rounded-full text-xs font-medium tracking-wide transition-colors',
+                      on ? 'text-black' : 'text-muted-foreground hover:text-foreground',
+                      isMobile && 'px-2 text-[10px] whitespace-nowrap shrink-0'
                     )}
                     style={on ? { color: pillTextColor || '#ffffff' } : undefined}
                   >
