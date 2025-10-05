@@ -1,5 +1,13 @@
 import { useRef, useEffect, useCallback } from "react";
 
+function parentIsBody() {
+  try {
+    return document && document.body && document.body === document.querySelector('body')
+  } catch {
+    return true
+  }
+}
+
 const ClickSpark = ({
   sparkColor = "#fff",
   sparkSize = 10,
@@ -23,12 +31,30 @@ const ClickSpark = ({
 
     let resizeTimeout;
 
+    const cssSizeRef = { w: 0, h: 0 }
     const resizeCanvas = () => {
-      const { width, height } = parent.getBoundingClientRect();
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const cssWidth = Math.max(0, Math.floor(rect.width));
+      const cssHeight = Math.max(0, Math.floor(rect.height));
+      // Only update if size changed
+      if (cssSizeRef.w === cssWidth && cssSizeRef.h === cssHeight) return
+      cssSizeRef.w = cssWidth; cssSizeRef.h = cssHeight
+      // size the backing store to device pixels for crisp rendering
+      canvas.width = Math.floor(cssWidth * dpr);
+      canvas.height = Math.floor(cssHeight * dpr);
+      // ensure CSS size matches layout
+      canvas.style.width = cssWidth + 'px';
+      canvas.style.height = cssHeight + 'px';
+      // scale drawing coordinates so 1 unit === 1 CSS pixel
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
       }
+      // store CSS size for click bounds and clearing
+      canvas.__cssWidth = cssWidth;
+      canvas.__cssHeight = cssHeight;
     };
 
     const handleResize = () => {
@@ -74,7 +100,10 @@ const ClickSpark = ({
       if (!startTimeRef.current) {
         startTimeRef.current = timestamp;
       }
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // clear using CSS pixel dimensions because context is scaled
+      const cssW = canvas.__cssWidth || canvas.width;
+      const cssH = canvas.__cssHeight || canvas.height;
+      ctx.clearRect(0, 0, cssW, cssH);
 
       sparksRef.current = sparksRef.current.filter((spark) => {
         const elapsed = timestamp - spark.startTime;
@@ -85,13 +114,14 @@ const ClickSpark = ({
         const progress = elapsed / duration;
         const eased = easeFunc(progress);
 
-        const distance = eased * sparkRadius * extraScale;
-        const lineLength = sparkSize * (1 - eased);
+  const distance = eased * sparkRadius * extraScale;
+  const lineLength = sparkSize * (1 - eased);
 
-        const x1 = spark.x + distance * Math.cos(spark.angle);
-        const y1 = spark.y + distance * Math.sin(spark.angle);
-        const x2 = spark.x + (distance + lineLength) * Math.cos(spark.angle);
-        const y2 = spark.y + (distance + lineLength) * Math.sin(spark.angle);
+  // spark.x/y are stored in CSS pixels; drawing context is scaled so use them directly
+  const x1 = spark.x + distance * Math.cos(spark.angle);
+  const y1 = spark.y + distance * Math.sin(spark.angle);
+  const x2 = spark.x + (distance + lineLength) * Math.cos(spark.angle);
+  const y2 = spark.y + (distance + lineLength) * Math.sin(spark.angle);
 
         ctx.strokeStyle = sparkColor;
         ctx.lineWidth = 2;
@@ -121,28 +151,37 @@ const ClickSpark = ({
     extraScale,
   ]);
 
-  const handleClick = (e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Get the canvas position relative to the viewport
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Only create sparks if the click is within the canvas bounds
-    if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
-      const now = performance.now();
-      const newSparks = Array.from({ length: sparkCount }, (_, i) => ({
-        x,
-        y,
-        angle: (2 * Math.PI * i) / sparkCount,
-        startTime: now,
-      }));
-
-      sparksRef.current.push(...newSparks);
+    const createSparks = (clientX, clientY) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return false;
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const cssW = canvas.__cssWidth || rect.width;
+      const cssH = canvas.__cssHeight || rect.height;
+      if (x >= 0 && x <= cssW && y >= 0 && y <= cssH) {
+        const now = performance.now();
+        const newSparks = Array.from({ length: sparkCount }, (_, i) => ({
+          x: Math.round(x),
+          y: Math.round(y),
+          angle: (2 * Math.PI * i) / sparkCount,
+          startTime: now,
+        }));
+        sparksRef.current.push(...newSparks);
+        return true;
+      }
+      return false;
     }
-  };
+
+    useEffect(() => {
+      const onPointer = (e) => {
+        // Only left button or primary pointer
+        if (e instanceof PointerEvent && e.button && e.button !== 0) return
+        createSparks(e.clientX, e.clientY)
+      }
+      window.addEventListener('pointerdown', onPointer, { passive: true })
+      return () => window.removeEventListener('pointerdown', onPointer)
+    }, [sparkCount])
 
   return (
     <div
@@ -152,7 +191,6 @@ const ClickSpark = ({
         height: "100%",
         minHeight: "100vh",
       }}
-      onClick={handleClick}
     >
       <canvas
         ref={canvasRef}
@@ -162,7 +200,7 @@ const ClickSpark = ({
           minHeight: "100vh",
           display: "block",
           userSelect: "none",
-          position: "fixed",
+          position: parentIsBody() ? 'fixed' : 'absolute',
           top: 0,
           left: 0,
           pointerEvents: "none",
