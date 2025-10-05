@@ -179,76 +179,104 @@ export default function PublicIssueDetailsPage() {
   return (
     <main className="min-h-dvh">
       <Navbar />
-      <section className="mx-auto max-w-4xl p-6 space-y-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold">{issue.title}</h1>
-            <div className="flex items-center gap-2 text-xs">
-              {issue.category ? <span className="px-2 py-1 rounded bg-muted">{issue.category}</span> : null}
-              <span className="px-2 py-1 rounded bg-muted">Status: {issue.status}</span>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Reported: {new Date(issue.createdAt).toLocaleString()} • By: {issue.createdBy || "Unknown"}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant={userVote === "UP" ? "default" : "secondary"} onClick={() => handleVote("UP")} disabled={voteLoading}>Upvote (+)</Button>
-            <Button size="sm" variant={userVote === "DOWN" ? "default" : "secondary"} onClick={() => handleVote("DOWN")} disabled={voteLoading}>Downvote (-)</Button>
-            <span className="text-sm">Votes: {up - down}</span>
-          </div>
-        </div>
-
-        {issue.imageBase64 || issue.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={(issue.imageBase64 || issue.photoUrl) || "/placeholder.svg"} alt="Issue" className="w-full max-h-[420px] object-cover rounded-md border" />
-        ) : null}
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="space-y-3">
-              <div className="font-medium">Description</div>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{issue.description}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-3">
-          <div className="font-medium">Location</div>
-          <div className="text-sm text-muted-foreground">{issue.location || "Not provided"}</div>
-          <div className="h-64 w-full overflow-hidden rounded-md border">
-            <MapContainer center={center} zoom={12} style={{ height: "100%", width: "100%" }}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <Marker position={center}>
-                <Popup>{issue.location}</Popup>
-              </Marker>
-            </MapContainer>
-          </div>
-        </div>
-
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <div className="font-medium">Comments</div>
-            <div className="space-y-2">
-              {comments.length === 0 ? (
-                <div className="text-xs text-muted-foreground">No comments yet.</div>
+      <section className="mx-auto max-w-6xl p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column: media + map */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="rounded-md overflow-hidden border bg-white/80 shadow-sm">
+              {issue.imageBase64 || issue.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={(issue.imageBase64 || issue.photoUrl) || "/placeholder.svg"} alt="Issue" className="w-full h-60 object-cover" />
               ) : (
-                comments.map((c) => (
-                  <div key={c.id} className="rounded-md border p-2">
-                    <div className="text-xs text-muted-foreground">{c.userName} • {new Date(c.createdAt).toLocaleString()}</div>
-                    <div className="text-sm">{c.text}</div>
-                  </div>
-                ))
+                <div className="w-full h-60 flex items-center justify-center text-sm text-muted-foreground">No image provided</div>
               )}
+              <div className="p-3 border-t bg-gray-50">
+                <div className="text-xs text-muted-foreground">Reported: {new Date(issue.createdAt).toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground">By: {issue.createdBy || "Unknown"}</div>
+              </div>
             </div>
-            {comments.length < commentsTotal ? (
-              <Button size="sm" onClick={loadMore} disabled={loadingComments}>Load more</Button>
-            ) : null}
-            <div className="flex items-center gap-2">
-              <Input value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write a comment" />
-              <Button size="sm" onClick={submitComment} disabled={postingComment}>Comment</Button>
+
+            <div className="rounded-md overflow-hidden border bg-white/80 shadow-sm">
+              <div className="p-2">
+                <div className="font-medium mb-2">Location</div>
+                <div className="text-sm text-muted-foreground mb-2">{issue.location || "Not provided"}</div>
+                <div className="h-48 w-full overflow-hidden rounded-md">
+                  <MapContainer center={center} zoom={12} style={{ height: "100%", width: "100%" }}>
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={center}>
+                      <Popup>{issue.location}</Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Right column: main details and actions */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">{issue.title}</h1>
+                <div className="mt-2 flex items-center gap-3">
+                  {issue.category ? <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm">{issue.category}</span> : null}
+                  {/* Prominent status badge */}
+                  <span
+                    role="status"
+                    aria-label={`Status: ${issue.status}`}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      issue.status === 'resolved' ? 'bg-green-100 text-green-800' : issue.status === 'in-progress' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {issue.status === 'resolved' ? 'Resolved' : issue.status === 'in-progress' ? 'In Progress' : 'Pending'}
+                  </span>
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">Issue ID: {issue.id}</div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant={userVote === "UP" ? "default" : "secondary"} onClick={() => handleVote("UP")} disabled={voteLoading}>Upvote</Button>
+                  <Button size="sm" variant={userVote === "DOWN" ? "default" : "secondary"} onClick={() => handleVote("DOWN")} disabled={voteLoading}>Downvote</Button>
+                </div>
+                <div className="text-sm text-slate-700">Votes: <span className="font-medium text-slate-900">{up - down}</span></div>
+              </div>
+            </div>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="font-medium text-slate-800">Description</div>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{issue.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                <div className="font-medium text-slate-800">Comments ({commentsTotal})</div>
+                <div className="space-y-2">
+                  {comments.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No comments yet.</div>
+                  ) : (
+                    comments.map((c) => (
+                      <div key={c.id} className="rounded-md border p-3 bg-white">
+                        <div className="text-xs text-muted-foreground">{c.userName} • {new Date(c.createdAt).toLocaleString()}</div>
+                        <div className="text-sm text-slate-800">{c.text}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {comments.length < commentsTotal ? (
+                  <Button size="sm" onClick={loadMore} disabled={loadingComments}>Load more</Button>
+                ) : null}
+                <div className="flex items-center gap-2 mt-2">
+                  <Input value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write a comment" />
+                  <Button size="sm" onClick={submitComment} disabled={postingComment}>Comment</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </section>
     </main>
   )

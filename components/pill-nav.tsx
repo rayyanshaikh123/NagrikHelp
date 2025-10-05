@@ -54,34 +54,37 @@ export default function PillNav({
     if (!el || !containerRef.current) { setRect(null); return }
     const cRect = containerRef.current.getBoundingClientRect()
     const iRect = el.getBoundingClientRect()
-    setRect({ x: iRect.left - cRect.left, w: iRect.width })
+    // If the nav is horizontally scrollable, adjust for scrollLeft
+    const scrollLeft = containerRef.current.scrollLeft || 0
+    setRect({ x: iRect.left - cRect.left + scrollLeft, w: iRect.width })
   }, [active, hoverIndex, items])
 
   const Wrapper: any = glass ? GlassSurface : 'div'
 
   return (
     <Wrapper
-      className={cn('mx-auto max-w-7xl w-full px-4 py-2', glass && 'backdrop-blur-md bg-background/60 border border-border/60 rounded-2xl', className)}
+      className={cn('mx-auto max-w-7xl w-full px-2 py-2', glass && 'backdrop-blur-md bg-background/80 border border-border/60 rounded-2xl', className)}
       height={undefined}
       width={undefined}
       borderRadius={glass ? 28 : undefined}
     >
-      <div className="flex items-center gap-6" ref={containerRef}>
+      <div className="flex items-center gap-4" ref={containerRef}>
         <Link href="/" className="flex items-center gap-2 shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logo} alt={logoAlt} className="h-8 w-8 object-contain" />
           <span className="text-sm font-semibold tracking-tight" style={{ color: baseColor }}>{logoAlt}</span>
         </Link>
-        <nav className="relative flex-1">
-          <div className="relative flex items-center gap-1">
+        <nav className="relative flex-1 overflow-x-auto scrollbar-hide">
+          <div className="relative flex items-center gap-1 whitespace-nowrap px-2">
             {rect && (
               <div
-                className="absolute top-0 bottom-0 my-[2px] rounded-full transition-all duration-300"
+                className="absolute top-0 bottom-0 my-[6px] rounded-full transition-all duration-300 shadow-md"
                 style={{
                   transform: `translateX(${rect.x}px)`,
                   width: rect.w,
-                  background: pillColor,
-                  color: pillTextColor,
+                  background: pillColor || 'rgba(255,255,255,0.06)',
+                  color: pillTextColor || '#ffffff',
+                  padding: '6px 8px'
                 }}
               />
             )}
@@ -91,14 +94,14 @@ export default function PillNav({
               return (
                 <Link key={it.href} href={it.href} className="relative">
                   <button
-                    ref={el => itemRefs.current[i] = el}
+                    ref={el => { itemRefs.current[i] = el }}
                     onMouseEnter={() => setHoverIndex(i)}
                     onMouseLeave={() => setHoverIndex(null)}
                     className={cn(
-                      'relative z-10 px-4 h-10 rounded-full text-xs font-medium tracking-wide transition-colors',
-                      on ? 'text-black' : 'text-muted-foreground hover:text-foreground'
+                      'relative z-10 px-4 h-10 rounded-full text-sm font-medium tracking-wide transition-colors inline-flex items-center justify-center',
+                      on ? 'text-white' : 'text-slate-300 hover:text-white'
                     )}
-                    style={on ? { color: pillTextColor } : undefined}
+                    style={on ? { color: pillTextColor || '#ffffff' } : undefined}
                   >
                     {it.label}
                   </button>

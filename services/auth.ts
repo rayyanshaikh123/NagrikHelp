@@ -9,9 +9,18 @@ export type AuthResponse = {
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || ""
 
-function handleHttpError(resp: Response): never {
-  const err = new Error(`Request failed: ${resp.status} ${resp.statusText}`)
+async function handleHttpError(resp: Response): Promise<never> {
+  // Try to parse JSON body for useful error messages, fall back to status text
+  let body: any = null
+  try {
+    body = await resp.json()
+  } catch {
+    // ignore parse errors
+  }
+  const msg = body?.message || body?.errors || `${resp.status} ${resp.statusText}`
+  const err = new Error(typeof msg === "string" ? `Request failed: ${msg}` : `Request failed: ${resp.status} ${resp.statusText}`)
   ;(err as any).status = resp.status
+  ;(err as any).body = body
   throw err
 }
 
@@ -21,7 +30,7 @@ export async function login(input: { email: string; password: string }): Promise
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   })
-  if (!res.ok) handleHttpError(res)
+  if (!res.ok) await handleHttpError(res)
   return (await res.json()) as AuthResponse
 }
 
@@ -36,7 +45,7 @@ export async function register(input: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   })
-  if (!res.ok) handleHttpError(res)
+  if (!res.ok) await handleHttpError(res)
   return (await res.json()) as AuthResponse
 }
 

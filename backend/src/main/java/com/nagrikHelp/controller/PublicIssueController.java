@@ -23,8 +23,10 @@ public class PublicIssueController {
     private static final Pattern E164 = Pattern.compile("^\\+?[1-9]\\d{7,14}$");
 
     @GetMapping("/{token}")
-    public ResponseEntity<PublicIssueResponse> getByShareToken(@PathVariable("token") String token) {
-        return issueService.getIssueByShareToken(token)
+    public ResponseEntity<PublicIssueResponse> getByShareToken(@PathVariable("token") String token,
+                                                               @RequestParam(value = "email", required = false) String email,
+                                                               @RequestParam(value = "phone", required = false) String phone) {
+        return issueService.getIssueByShareToken(token, email, phone)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

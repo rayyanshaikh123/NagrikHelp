@@ -71,9 +71,15 @@ export function NotificationsDialog({ open, onOpenChange, onConsumeUnread }: Pro
               <ul className="space-y-2">
                 {items.map(n => (
                   <li key={n.id} className={`p-3 border rounded-md text-xs flex flex-col gap-1 ${!n.read ? 'bg-muted/60' : ''}`}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium truncate">{n.type.replace('ISSUE_','').replace('_',' ')}</span>
-                      <span className="text-[10px] text-muted-foreground">{new Date(n.createdAt).toLocaleString()}</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-[12px]">{n.type?.replace('ISSUE_','').replace('_',' ')}</span>
+                        {!n.read ? <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-800">Unread</span> : <span className="text-[10px] text-muted-foreground">Read</span>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground">{new Date(n.createdAt).toLocaleString()}</span>
+                        <span className="text-[10px] text-muted-foreground">ID: <span className="font-mono text-[10px]">{n.id}</span></span>
+                      </div>
                     </div>
                     <div className="leading-snug whitespace-pre-wrap break-words">{n.message}</div>
                     {n.issueId && (

@@ -201,7 +201,7 @@ export default function Home() {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="f1">
             <AccordionTrigger className="text-left">What is NagrikHelp?</AccordionTrigger>
-            <AccordionContent className="text-sm text-muted-foreground">NagrikHelp is a civic issue reporting platform that lets citizens submit geo‑tagged problems (like potholes, streetlights, sanitation) and track resolution in a transparent status flow used by local administrators.</AccordionContent>
+            <AccordionContent className="text-sm text-muted-foreground">NagrikHelp is a civic issue reporting platform that lets citizens submit geo-tagged problems (like potholes, streetlights, sanitation) and track resolution in a transparent status flow used by local administrators.</AccordionContent>
           </AccordionItem>
           <AccordionItem value="f2">
             <AccordionTrigger className="text-left">How do I report an issue?</AccordionTrigger>
@@ -224,7 +224,7 @@ export default function Home() {
 
       <footer className="mt-auto border-t bg-background/70 supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between text-xs text-muted-foreground">
-          <span>&copy; {new Date().getFullYear()} Civic Reporter</span>
+          <span>&copy; {new Date().getFullYear()} NagrikHelp</span>
           <div className="flex gap-4">
             <button onClick={()=>router.push('#features')} className="hover:text-foreground transition">Features</button>
             <button onClick={()=>router.push('#how-it-works')} className="hover:text-foreground transition">How It Works</button>

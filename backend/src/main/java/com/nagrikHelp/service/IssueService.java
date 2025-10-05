@@ -72,11 +72,19 @@ public class IssueService {
 
     public Optional<IssueResponse> updateIssue(String id, UpdateIssueRequest req) {
         return issueRepository.findById(id).map(existing -> {
+            IssueStatus prev = existing.getStatus();
             if (req.getStatus() != null && !req.getStatus().isBlank()) {
                 existing.setStatus(parseStatus(req.getStatus()));
             }
             existing.setUpdatedAt(new Date());
             issueRepository.save(existing);
+            // If status changed, notify followers and owner
+            try {
+                if (prev != existing.getStatus()) {
+                    try { notificationService.notifyFollowersOnStatusChange(existing); } catch (Exception ex) { log.warn("notifyFollowersOnStatusChange failed: {}", ex.getMessage()); }
+                    try { notificationService.notifyOwnerOnStatusChange(existing); } catch (Exception ex) { log.warn("notifyOwnerOnStatusChange failed: {}", ex.getMessage()); }
+                }
+            } catch (Exception ignore) {}
             return IssueResponse.from(existing);
         });
     }
@@ -136,6 +144,10 @@ public class IssueService {
     }
 
     public Optional<PublicIssueResponse> getIssueByShareToken(String token) {
+        return getIssueByShareToken(token, null, null);
+    }
+
+    public Optional<PublicIssueResponse> getIssueByShareToken(String token, String email, String phone) {
         if (token == null || token.isBlank()) return Optional.empty();
         return issueRepository.findByShareToken(token.trim()).map(i -> {
             // Ensure backward compatibility for pre-existing issues without token
@@ -144,7 +156,7 @@ public class IssueService {
                 issueRepository.save(i);
             }
             IssueVoteSummaryDto vs = voteService.summarize(i.getId(), "__anon__");
-            return PublicIssueResponse.from(i, vs.getUpVotes());
+            return PublicIssueResponse.from(i, vs.getUpVotes(), email, phone);
         });
     }
 
@@ -166,8 +178,7 @@ public class IssueService {
                 issue.setUpdatedAt(new Date());
                 issueRepository.save(issue);
                 try {
-                    log.debug("updateIssueStatus: status unchanged; still triggering notifications for id={}", issueId);
-                    notificationService.notifyFollowersOnStatusChange(issue);
+                    log.debug("updateIssueStatus: status unchanged; notifying owner for id={}", issueId);
                     notificationService.notifyOwnerOnStatusChange(issue);
                 } catch (Exception ex) { log.warn("updateIssueStatus notify (no change) failed: {}", ex.getMessage()); }
                 return IssueResponse.from(issue);
@@ -182,11 +193,30 @@ public class IssueService {
             issueRepository.save(issue);
             log.info("updateIssueStatus: saved new status {} for issueId={}", nextStatus, issueId);
             try {
-                notificationService.notifyFollowersOnStatusChange(issue);
+                // Admin-triggered status changes notify the owner only (not followers)
                 notificationService.notifyOwnerOnStatusChange(issue);
-                log.debug("updateIssueStatus: notifications dispatched issueId={}", issueId);
+                log.debug("updateIssueStatus: owner notified for issueId={}", issueId);
             } catch (Exception ex) { log.warn("updateIssueStatus notify failed issueId={} error={}", issueId, ex.getMessage()); }
             return IssueResponse.from(issue);
+        });
+    }
+
+    // Admin-specific update: similar to updateIssue but records admin action and notifies owner only
+    public Optional<IssueResponse> updateIssueAsAdmin(String id, UpdateIssueRequest req, String adminUser) {
+        return issueRepository.findById(id).map(existing -> {
+            IssueStatus prev = existing.getStatus();
+            if (req.getStatus() != null && !req.getStatus().isBlank()) {
+                existing.setStatus(parseStatus(req.getStatus()));
+            }
+            existing.setUpdatedAt(new Date());
+            issueRepository.save(existing);
+            // If status changed, notify the owner only
+            try {
+                if (prev != existing.getStatus()) {
+                    try { notificationService.notifyOwnerOnStatusChange(existing); } catch (Exception ex) { log.warn("notifyOwnerOnStatusChange failed: {}", ex.getMessage()); }
+                }
+            } catch (Exception ignore) {}
+            return IssueResponse.from(existing);
         });
     }
 

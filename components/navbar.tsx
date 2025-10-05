@@ -65,6 +65,14 @@ export default function Navbar() {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-end gap-3">
           <ThemeToggle />
+          <div className="relative">
+            <Button size="sm" variant="ghost" onClick={()=>setNotifOpen(true)} aria-label="Notifications">
+              <Bell />
+            </Button>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-red-600 text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>
+            )}
+          </div>
           {role ? (
             <>
               <span className="text-[11px] px-2 py-1 rounded-md bg-muted border border-border/50 tracking-wide">

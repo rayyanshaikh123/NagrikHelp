@@ -11,11 +11,14 @@ import { Textarea } from "@/components/ui/textarea"
 import type { Issue } from "@/services/issues"
 import { voteIssue, updateCitizenIssue, deleteCitizenIssue } from "@/services/issues"
 import { useState, useEffect } from "react"
-import { ThumbsUp, ThumbsDown } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { followIssueByShareToken, unfollowIssueByShareToken } from "@/services/issues"
+import { ThumbsUp, ThumbsDown, Star } from "lucide-react"
 import { useSWRConfig } from "swr"
 import dynamic from "next/dynamic"
 
 const ShareIssueDialog = dynamic(() => import("./share-issue-dialog"), { ssr: false })
+import FollowModal from "./follow-modal"
 
 export default function IssueCard({
   issue,
@@ -121,16 +124,52 @@ export default function IssueCard({
 
   const [isOwner, setIsOwner] = useState(ownerMode)
   const [shareOpen, setShareOpen] = useState(false)
+  const { toast } = useToast()
+  const [followOpen, setFollowOpen] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') return
     try {
       const email = localStorage.getItem('email')
       if (email && issue.createdBy && email.toLowerCase() === issue.createdBy.toLowerCase()) {
         setIsOwner(true)
       }
     } catch {}
+    // initialize following state from localStorage registry
+    try {
+      if (typeof window !== 'undefined' && issue.shareToken) {
+        const raw = localStorage.getItem('followedShareTokens')
+        const arr = raw ? JSON.parse(raw) : []
+        setIsFollowing(Array.isArray(arr) && arr.includes(issue.shareToken))
+      }
+    } catch {}
   }, [issue.createdBy])
+
+  function addFollowedToken(token: string) {
+    try {
+      const raw = localStorage.getItem('followedShareTokens')
+      const arr = raw ? JSON.parse(raw) : []
+      if (!Array.isArray(arr)) return
+      if (!arr.includes(token)) {
+        arr.push(token)
+        localStorage.setItem('followedShareTokens', JSON.stringify(arr))
+      }
+    } catch {}
+  }
+
+  function removeFollowedToken(token: string) {
+    try {
+      const raw = localStorage.getItem('followedShareTokens')
+      const arr = raw ? JSON.parse(raw) : []
+      if (!Array.isArray(arr)) return
+      const idx = arr.indexOf(token)
+      if (idx >= 0) {
+        arr.splice(idx, 1)
+        localStorage.setItem('followedShareTokens', JSON.stringify(arr))
+      }
+    } catch {}
+  }
 
   async function saveEdits() {
     setEditSaving(true)
@@ -174,9 +213,37 @@ export default function IssueCard({
           )}
         </div>
         {issue.shareToken ? (
-          <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0" onClick={() => setShareOpen(true)} title="Share">
-            <span className="text-xs">↗</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="icon" className="h-7 w-7 shrink-0" onClick={() => setShareOpen(true)} title="Share">
+              <span className="text-xs">↗</span>
+            </Button>
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0" title={isFollowing ? "Unfollow" : "Follow"} onClick={async ()=>{
+                try {
+                  const email = typeof window !== 'undefined' ? localStorage.getItem('email') || undefined : undefined
+                  const phone = typeof window !== 'undefined' ? localStorage.getItem('phone') || undefined : undefined
+                  if (isFollowing) {
+                    // Unfollow
+                    await unfollowIssueByShareToken(issue.shareToken as string, { email, phone })
+                    removeFollowedToken(issue.shareToken as string)
+                    setIsFollowing(false)
+                    toast({ title: 'Unfollowed', description: 'You will no longer receive updates.' })
+                    return
+                  }
+                  if (!email && !phone) {
+                    setFollowOpen(true)
+                    return
+                  }
+                  await followIssueByShareToken(issue.shareToken as string, { email, phone })
+                  addFollowedToken(issue.shareToken as string)
+                  setIsFollowing(true)
+                  toast({ title: 'Following issue', description: 'You will receive updates.' })
+                } catch (e:any) {
+                  toast({ title: isFollowing ? 'Unfollow failed' : 'Follow failed', description: e?.body?.message || e?.message || (isFollowing ? 'Unable to unfollow' : 'Unable to follow') })
+                }
+              }}>
+                <Star className={`${isFollowing ? 'text-amber-400' : 'text-neutral-300'} h-4 w-4`} />
+              </Button>
+          </div>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
@@ -294,6 +361,20 @@ export default function IssueCard({
       </CardContent>
       {issue.shareToken ? (
         <ShareIssueDialog issue={issue} open={shareOpen} onOpenChange={setShareOpen} />
+      ) : null}
+      {issue.shareToken ? (
+        <FollowModal open={followOpen} onOpenChange={setFollowOpen} onSubmit={async ({ email, phone }) => {
+          try {
+            await followIssueByShareToken(issue.shareToken as string, { email, phone })
+            if (email) window.localStorage.setItem('email', email)
+            if (phone) window.localStorage.setItem('phone', phone)
+            toast({ title: 'Following issue', description: 'You will receive updates.' })
+            return
+          } catch (err: any) {
+            toast({ title: 'Follow failed', description: err?.body?.message || err?.message || 'Unable to follow' })
+            throw err
+          }
+        }} />
       ) : null}
     </Card>
   )

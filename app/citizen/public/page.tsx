@@ -23,6 +23,7 @@ export default function PublicPostsPage() {
   const router = useRouter()
   const [category, setCategory] = useState<string>("All")
   const [visible, setVisible] = useState<number>(12)
+  const [sortBy, setSortBy] = useState<string>("newest")
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -33,15 +34,13 @@ export default function PublicPostsPage() {
   }, [router])
 
   const { data } = useSWR(["public-issues"], () => getPublicIssues())
-  const issues: (Issue & { category: string })[] = useMemo(
-    () => (data || []).map((i) => ({ ...i, category: i.category || "Other" })),
-    [data],
-  )
+  const issues = useMemo(() => (data || []).map((i) => ({ ...i, category: (i.category || "OTHER") })), [data])
 
-  const filtered = useMemo(
-    () => (category === "All" ? issues : issues.filter((i) => i.category === category)),
-    [issues, category],
-  )
+  const filtered = useMemo(() => {
+    const base = category === "All" ? issues : issues.filter((i) => i.category === category)
+    if (sortBy === "votes") return [...base].sort((a, b) => (b.upVotes || 0) - (b.downVotes || 0) - ((a.upVotes || 0) - (a.downVotes || 0)))
+    return [...base].sort((a, b) => b.createdAt - a.createdAt)
+  }, [issues, category, sortBy])
 
   useEffect(() => {
     const node = sentinelRef.current
@@ -61,7 +60,7 @@ export default function PublicPostsPage() {
   }, [category])
 
   return (
-    <main className="min-h-dvh bg-neutral-50 dark:bg-neutral-900/95">
+    <main className="min-h-dvh bg-transparent">
       <Navbar />
       <section className="mx-auto max-w-6xl px-6 py-10 space-y-8">
         <header className="space-y-3">
@@ -79,6 +78,18 @@ export default function PublicPostsPage() {
                 {CATEGORY_LIST.map((c) => (
                   <SelectItem key={c} value={c} className="text-[13px]">{c}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] font-medium text-neutral-700 dark:text-neutral-200">Sort:</span>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-40 h-9 bg-white/80 dark:bg-neutral-900/60 border-neutral-300 dark:border-neutral-600 text-sm">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest" className="text-[13px]">Newest</SelectItem>
+                <SelectItem value="votes" className="text-[13px]">Most votes</SelectItem>
               </SelectContent>
             </Select>
           </div>

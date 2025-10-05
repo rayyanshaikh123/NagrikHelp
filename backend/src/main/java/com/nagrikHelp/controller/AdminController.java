@@ -50,9 +50,10 @@ public class AdminController {
 
     @PatchMapping("/issues/{id}")
     public ResponseEntity<IssueResponse> update(@PathVariable String id, @RequestBody UpdateIssueRequest req) {
-        return issueService.updateIssue(id, req)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    // Admins editing issues should trigger owner-only notifications for status changes
+    return issueService.updateIssueAsAdmin(id, req, null)
+        .map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/issues/{id}/status")
