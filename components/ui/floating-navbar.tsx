@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useIsMobile } from './use-mobile'
 
 export interface FloatingNavItem {
   name: string
@@ -23,6 +24,7 @@ export function FloatingNav({ navItems, className, hideOnScroll = true, threshol
   const [visible, setVisible] = useState(true)
   const lastY = useRef(0)
   const [atTop, setAtTop] = useState(true)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     function onScroll() {
@@ -54,6 +56,7 @@ export function FloatingNav({ navItems, className, hideOnScroll = true, threshol
           'flex items-center gap-1 rounded-full border border-border/60 bg-background/60 backdrop-blur-md px-2 py-1 shadow-sm',
           'transition-colors',
           !atTop && 'bg-background/70',
+          isMobile && 'gap-0.5 px-1',
           className
         )}
       >
@@ -80,11 +83,13 @@ export function FloatingNav({ navItems, className, hideOnScroll = true, threshol
               onClick={handleClick}
               className={cn(
                 'group relative flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium tracking-wide transition',
-                active ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                active ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                isMobile && 'px-2 py-1.5 gap-1'
               )}
+              title={isMobile ? item.name : undefined}
             >
               {item.icon}
-              <span>{item.name}</span>
+              {!isMobile && <span>{item.name}</span>}
             </Link>
           )
         })}

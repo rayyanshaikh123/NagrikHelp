@@ -121,14 +121,44 @@
 }
 
 @layer base {
-  * { @apply border-border outline-ring/50; }
+  * {
+    @apply border-border outline-ring/50;
+  }
   /* Use Inter (provided by next/font in layout) when available, fall back to system fonts */
-  :root { --ui-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
-  body { @apply bg-background text-foreground; font-family: var(--font-inter, var(--ui-font)); font-feature-settings: "rlig" 1, "calt" 1; }
+  :root {
+    --ui-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter, var(--ui-font));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 
   /* Custom smooth cursor overrides */
-  .cursor-none, .cursor-none * { cursor: none !important; }
-  .cursor-none input, .cursor-none textarea, .cursor-none [contenteditable="true"] { cursor: text !important; }
+  .cursor-none,
+  .cursor-none * {
+    cursor: none !important;
+  }
+  .cursor-none input,
+  .cursor-none textarea,
+  .cursor-none [contenteditable="true"] {
+    cursor: text !important;
+  }
   /* Allow opt-out by adding .cursor-auto on an element */
-  .cursor-none .cursor-auto, .cursor-none .cursor-auto * { cursor: auto !important; }
+  .cursor-none .cursor-auto,
+  .cursor-none .cursor-auto * {
+    cursor: auto !important;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for mobile navigation */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
 }
