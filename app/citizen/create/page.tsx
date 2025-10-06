@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import ReportIssueForm from '@/components/report-issue-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import CitizenPageShell from '@/components/citizen-page-shell'
 
 export default function CitizenCreateIssuePage() {
   const router = useRouter()
@@ -16,22 +17,22 @@ export default function CitizenCreateIssuePage() {
   const userId = useMemo(() => localStorage.getItem('userId') || 'demo-user-1', [])
 
   return (
-    <main className="min-h-dvh">
+    <CitizenPageShell
+      title="Report an Issue"
+      description="Provide clear, concise details and an accurate location to help authorities prioritize and resolve the issue faster."
+      maxWidth="5xl"
+      sectionClassName="space-y-6"
+      withDockSpacing
+    >
       <Navbar />
-      <section className="mx-auto max-w-5xl px-6 py-10 space-y-6">
-        <div className="space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">Report an Issue</h1>
-          <p className="text-sm text-neutral-600 dark:text-neutral-300 max-w-prose">Provide clear, concise details and an accurate location to help authorities prioritize and resolve the issue faster.</p>
-        </div>
-        <Card className="border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800/80 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium text-neutral-800 dark:text-neutral-100">Submission Details</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ReportIssueForm userId={userId} />
-          </CardContent>
-        </Card>
-      </section>
-    </main>
+      <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium text-slate-800 dark:text-slate-100">Submission Details</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <ReportIssueForm userId={userId} />
+        </CardContent>
+      </Card>
+    </CitizenPageShell>
   )
 }

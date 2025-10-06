@@ -156,6 +156,24 @@
   .cursor-none .cursor-auto * {
     cursor: auto !important;
   }
+
+  /* Desktop-only custom cursor scope: hides default cursor on hover for all elements except text inputs/contenteditable.
+     Applied via a wrapper (.smooth-cursor-scope). Keeps mobile unaffected. */
+  @media (min-width: 768px) {
+    .smooth-cursor-scope,
+    .smooth-cursor-scope * {
+      cursor: none !important;
+    }
+    .smooth-cursor-scope input,
+    .smooth-cursor-scope textarea,
+    .smooth-cursor-scope [contenteditable="true"],
+    .smooth-cursor-scope .cursor-text,
+    .smooth-cursor-scope .cursor-auto,
+    .smooth-cursor-scope .cursor-pointer-allow,
+    .smooth-cursor-scope .cursor-default-allow {
+      cursor: auto !important;
+    }
+  }
 }
 
 @layer utilities {

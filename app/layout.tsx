@@ -51,8 +51,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Custom smooth cursor */}
         <ThemeProvider attribute="class" enableSystem defaultTheme="system" disableTransitionOnChange>
           <ThemeClickSpark>
-            <div className="cursor-none">
-              <SmoothCursor zIndex={2147483647} />
+            <div className="smooth-cursor-scope">
+              <div className="hidden md:block" aria-hidden="true">
+                <SmoothCursor zIndex={2147483647} />
+              </div>
               <ThemeHotkey />
               <div className="min-h-dvh">{children}</div>
             </div>

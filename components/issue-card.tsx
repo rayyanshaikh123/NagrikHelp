@@ -13,7 +13,7 @@ import { voteIssue, updateCitizenIssue, deleteCitizenIssue } from "@/services/is
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { followIssueByShareToken, unfollowIssueByShareToken } from "@/services/issues"
-import { ThumbsUp, ThumbsDown, Star } from "lucide-react"
+import { Star } from "lucide-react"
 import { useSWRConfig } from "swr"
 import dynamic from "next/dynamic"
 
@@ -199,7 +199,7 @@ export default function IssueCard({
   }
 
   return (
-    <Card className="relative overflow-hidden rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 shadow-sm transition hover:shadow-md hover:border-neutral-400 dark:hover:border-neutral-600 h-full">
+    <Card className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm transition hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 h-full">
       <CardHeader className="pb-2 flex flex-row items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           {mode === "citizen" ? (
@@ -247,12 +247,28 @@ export default function IssueCard({
         ) : null}
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
-        <div className="flex items-center flex-wrap gap-2 text-xs">
-          {issue.category ? <span className="px-2 py-1 rounded-md bg-neutral-300 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 border border-neutral-400 dark:border-neutral-500">{issue.category}</span> : null}
-          <span className="px-2 py-1 rounded-md bg-neutral-300 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 border border-neutral-400 dark:border-neutral-500">{formatStatus(issue.status)}</span>
-          {(issue.commentsCount ?? 0) > 0 ? <span className="text-muted-foreground">{issue.commentsCount} comments</span> : null}
+        <div className="flex items-center flex-wrap gap-2 text-[11px]">
+          {issue.category ? (
+            <span className="px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-300 font-medium border border-indigo-200 dark:border-indigo-800">
+              {issue.category}
+            </span>
+          ) : null}
+          <span
+            className={`px-2 py-1 rounded-full font-semibold border text-[11px] ${
+              issue.status === 'resolved'
+                ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
+                : issue.status === 'in-progress'
+                ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800'
+            }`}
+          >
+            {formatStatus(issue.status)}
+          </span>
+          {(issue.commentsCount ?? 0) > 0 ? (
+            <span className="text-slate-500 dark:text-slate-400">{issue.commentsCount} comments</span>
+          ) : null}
         </div>
-        <div className="relative w-full h-36 overflow-hidden rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-700/60">
+        <div className="relative w-full h-36 overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700/50">
           {issue.imageBase64 || issue.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -271,12 +287,12 @@ export default function IssueCard({
             />
           )}
           {mode === "citizen" ? (
-            <div className="absolute top-2 right-2 flex items-center gap-2 rounded-md bg-neutral-900/80 dark:bg-neutral-950/70 text-neutral-50 px-2 py-1 shadow-xs border border-neutral-600 text-[11px]">
+            <div className="absolute top-2 right-2 flex items-center gap-2 rounded-md bg-slate-900/85 dark:bg-slate-950/70 text-slate-50 px-2 py-1 border border-slate-600/70 backdrop-blur-sm text-[11px]">
               <button
                 type="button"
                 disabled={voting}
                 onClick={() => handleVote("UP")}
-                className={`text-xs px-2 py-1 rounded transition border ${userVote === "UP" ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`}
+                className={`text-xs px-2 py-1 rounded transition border ${userVote === "UP" ? "bg-indigo-500 border-indigo-500 text-white" : "border-slate-500/40 hover:bg-slate-800/60"}`}
               >
                 ▲ {upVotes}
               </button>
@@ -285,7 +301,7 @@ export default function IssueCard({
                 type="button"
                 disabled={voting}
                 onClick={() => handleVote("DOWN")}
-                className={`text-xs px-2 py-1 rounded transition border ${userVote === "DOWN" ? "bg-destructive text-destructive-foreground border-destructive" : "hover:bg-muted"}`}
+                className={`text-xs px-2 py-1 rounded transition border ${userVote === "DOWN" ? "bg-rose-500 border-rose-500 text-white" : "border-slate-500/40 hover:bg-slate-800/60"}`}
               >
                 ▼ {downVotes}
               </button>
@@ -310,13 +326,13 @@ export default function IssueCard({
         )}
 
         {canManage ? (
-          <div className="text-[11px] text-muted-foreground whitespace-pre-wrap line-clamp-6">
+          <div className="text-[11px] text-slate-600 dark:text-slate-300 whitespace-pre-wrap line-clamp-6">
             {issue.description}
           </div>
         ) : null}
 
         {isOwner && mode === 'citizen' ? (
-          <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-300 dark:border-neutral-700 mt-2 pt-3">
+          <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200 dark:border-slate-700 mt-2 pt-3">
             <Dialog open={editOpen} onOpenChange={setEditOpen}>
               <DialogTrigger asChild>
                 <Button variant="secondary" size="sm">Edit</Button>
@@ -351,11 +367,11 @@ export default function IssueCard({
         ) : null}
 
         {mode === "citizen" ? (
-          <div className="pt-1 flex items-center justify-between text-[11px] text-neutral-600 dark:text-neutral-300">
-            <Link href={`/citizen/public/${issue.id}`} className="text-xs font-medium text-primary hover:underline">
+          <div className="pt-1 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300">
+            <Link href={`/citizen/public/${issue.id}`} className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
               View details →
             </Link>
-            <span className="text-[10px] text-muted-foreground">Net votes: {netVote}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">Net votes: {netVote}</span>
           </div>
         ) : null}
       </CardContent>

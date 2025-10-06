@@ -31,11 +31,15 @@ export default function AdminPage() {
       <Navbar />
       <div className="flex">
         <Sidebar role="admin" />
-        <section className="flex-1 p-6 space-y-8">
-          <h1 className="text-2xl font-semibold text-balance">Admin Dashboard</h1>
-          <div className="space-y-2">
-            <h2 className="text-lg font-medium">Issues Map</h2>
-            <AdminMap height={380} issues={filtered} />
+        <section className="flex-1 p-6 space-y-10">
+          <div className="space-y-4">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 p-4">
+              <h2 className="text-lg font-semibold tracking-tight">Admin Dashboard</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">Moderate and track civic issues, update statuses, and view spatial distribution.</p>
+              <div className="rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/40">
+                <AdminMap height={380} issues={filtered} />
+              </div>
+            </div>
           </div>
           <AdminIssues issues={issues} filtered={filtered} onUpdate={async (id, patch) => { await updateIssue(id, patch); mutate() }} />
         </section>
@@ -55,28 +59,32 @@ function AdminIssues({ issues, filtered, onUpdate }: { issues: Issue[]; filtered
   async function handleUpdate(id: string, patch: Partial<Issue>) { await onUpdate(id, patch) }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <DashboardStats issues={issues} />
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Filter:</span>
-        <a href="?status=all" className="text-sm underline-offset-2 hover:underline">
-          All ({counts.all})
-        </a>
-        <a href="?status=pending" className="text-sm underline-offset-2 hover:underline">
-          Pending ({counts.pending})
-        </a>
-        <a href="?status=in-progress" className="text-sm underline-offset-2 hover:underline">
-          In-Progress ({counts["in-progress"]})
-        </a>
-        <a href="?status=resolved" className="text-sm underline-offset-2 hover:underline">
-          Resolved ({counts.resolved})
-        </a>
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/60 backdrop-blur px-4 py-2 text-sm">
+        <span className="text-slate-600 dark:text-slate-400">Filter:</span>
+        <FilterLink label="All" count={counts.all} target="all" />
+        <FilterLink label="Pending" count={counts.pending} target="pending" />
+        <FilterLink label="In-Progress" count={counts["in-progress"]} target="in-progress" />
+        <FilterLink label="Resolved" count={counts.resolved} target="resolved" />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filtered.map((issue) => (
           <IssueCard key={issue.id} issue={issue} mode="admin" onUpdate={handleUpdate} />
         ))}
       </div>
     </div>
+  )
+}
+
+function FilterLink({ label, count, target }: { label: string; count: number; target: string }) {
+  const href = `?status=${target}`
+  return (
+    <a
+      href={href}
+      className="px-2 py-1 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800/80 transition text-xs font-medium"
+    >
+      {label} <span className="opacity-60">({count})</span>
+    </a>
   )
 }

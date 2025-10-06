@@ -34,12 +34,15 @@ export default function ReportsPage() {
   }, [router])
 
   return (
-    <main className="min-h-dvh">
+    <main className="min-h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <Navbar />
       <div className="flex">
         <Sidebar role="admin" />
-        <section className="flex-1 p-6 space-y-8">
-          <h1 className="text-2xl font-semibold">Reports & Analytics</h1>
+        <section className="flex-1 p-6 space-y-10">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-sky-500 to-cyan-400 dark:from-indigo-400 dark:via-sky-400 dark:to-cyan-300">Reports & Analytics</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-prose">Visualize issue distribution, creation trends, and generate monthly resolution reports.</p>
+          </div>
           <ReportsContent />
         </section>
       </div>
@@ -106,8 +109,8 @@ function ReportsContent() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <div className="border rounded-lg p-4">
-        <h2 className="font-medium mb-2">Issues by Status</h2>
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 backdrop-blur p-5">
+        <h2 className="font-medium mb-2 text-slate-800 dark:text-slate-100">Issues by Status</h2>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={statusData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -117,10 +120,10 @@ function ReportsContent() {
             <Bar dataKey="count" fill="#6366F1" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+        <div className="absolute inset-px rounded-[15px] pointer-events-none opacity-[0.08] bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.7),transparent_60%)]" />
       </div>
-
-      <div className="border rounded-lg p-4">
-        <h2 className="font-medium mb-2">Issues Created (Last {lastNDays} Days)</h2>
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/70 backdrop-blur p-5">
+        <h2 className="font-medium mb-2 text-slate-800 dark:text-slate-100">Issues Created (Last {lastNDays} Days)</h2>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={timelineData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -130,14 +133,14 @@ function ReportsContent() {
             <Line type="monotone" dataKey="created" stroke="#10B981" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
+        <div className="absolute inset-px rounded-[15px] pointer-events-none opacity-[0.08] bg-[radial-gradient(circle_at_70%_75%,rgba(34,197,94,0.5),transparent_60%)]" />
       </div>
-
-      <div className="border rounded-lg p-4 lg:col-span-2 space-y-4">
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur p-5 lg:col-span-2 space-y-5">
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Month</label>
             <select
-              className="border rounded px-2 py-1 text-sm"
+              className="border rounded px-2 py-1 text-sm bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500/40"
               value={reportMonth}
               onChange={(e) => setReportMonth(Number(e.target.value))}
             >
@@ -150,7 +153,7 @@ function ReportsContent() {
             <label className="block text-sm font-medium mb-1">Year</label>
             <input
               type="number"
-              className="border rounded px-2 py-1 w-28 text-sm"
+              className="border rounded px-2 py-1 w-28 text-sm bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500/40"
               value={reportYear}
               onChange={(e) => setReportYear(Number(e.target.value))}
             />
@@ -162,16 +165,16 @@ function ReportsContent() {
             <Button variant="outline" onClick={downloadPdf}>Download PDF</Button>
           )}
           {report && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-slate-600 dark:text-slate-400">
               Total Resolved: <span className="font-medium text-foreground">{report.totalResolved}</span>
             </div>
           )}
         </div>
         {report && (
           <div>
-            <h2 className="font-medium mb-2">Resolved Issues (Daily)</h2>
+            <h2 className="font-medium mb-2 text-slate-800 dark:text-slate-100">Resolved Issues (Daily)</h2>
             {dailyData.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No resolved issues this month.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">No resolved issues this month.</p>
             ) : (
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={dailyData}>
@@ -185,6 +188,7 @@ function ReportsContent() {
             )}
           </div>
         )}
+        <div className="absolute inset-px rounded-[15px] pointer-events-none opacity-[0.05] bg-[radial-gradient(circle_at_20%_10%,rgba(99,102,241,0.6),transparent_60%)]" />
       </div>
     </div>
   )

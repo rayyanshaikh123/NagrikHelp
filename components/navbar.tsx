@@ -62,7 +62,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="border-b bg-card">
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-end gap-3">
           <ThemeToggle />
           <div className="relative">
