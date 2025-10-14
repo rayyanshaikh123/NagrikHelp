@@ -32,7 +32,6 @@ public class IssueResponseDto {
     private String photoUrl;
     private String imageBase64;
     private String shareToken; // added
-    private AIValidationDto aiValidation; // Phase 4
 
     @Data
     @NoArgsConstructor
@@ -61,15 +60,6 @@ public class IssueResponseDto {
         dto.setPhotoUrl(i.getPhotoUrl());
         dto.setImageBase64(i.getImageBase64());
         dto.setShareToken(i.getShareToken());
-        if (i.getAiValidation() != null) {
-            AIValidationDto a = new AIValidationDto();
-            a.setValid(i.getAiValidation().isValid());
-            a.setSuggestedCategory(i.getAiValidation().getSuggestedCategory());
-            a.setConfidence(i.getAiValidation().getConfidence());
-            a.setMessage(i.getAiValidation().getMessage());
-            a.setProvider(i.getAiValidation().getProvider());
-            dto.setAiValidation(a);
-        }
         return dto;
     }
 
