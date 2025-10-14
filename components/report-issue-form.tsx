@@ -10,10 +10,25 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { useSWRConfig } from "swr"
 import { createIssue, type Issue, type IssueCategory } from "@/services/issues"
+import { validateIssueImage, type AIValidationResult } from "@/services/ai"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import dynamic from "next/dynamic"
-import L from "leaflet"
+// NOTE: Do NOT import leaflet at the module top during SSR; it touches `window`.
+// We'll lazy require it only in the browser.
+let Leaflet: typeof import('leaflet') | null = null
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const Lmod = require('leaflet') as typeof import('leaflet')
+  Leaflet = Lmod
+  Lmod.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+  })
+}
 import { useRouter } from "next/navigation"
 
 // Lazy-load map to avoid SSR issues (relax types for dynamic component)
@@ -22,12 +37,7 @@ const TileLayer = dynamic<any>(() => import("react-leaflet").then((m) => m.TileL
 const Marker = dynamic<any>(() => import("react-leaflet").then((m) => m.Marker), { ssr: false })
 const Popup = dynamic<any>(() => import("react-leaflet").then((m) => m.Popup), { ssr: false })
 
-// Configure default marker icons only via options (no prototype override)
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-})
+// (Marker icon config moved into guarded block above)
 
 const CATEGORIES: IssueCategory[] = ["POTHOLE", "GARBAGE", "STREETLIGHT", "WATER", "OTHER"]
 
@@ -38,6 +48,9 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
   const [category, setCategory] = useState<IssueCategory>("OTHER")
   const [imageBase64, setImageBase64] = useState<string | undefined>(undefined)
   const [preview, setPreview] = useState<string | undefined>(undefined)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiResult, setAiResult] = useState<AIValidationResult | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [created, setCreated] = useState<Issue | null>(null)
   const [votes, setVotes] = useState(0)
@@ -129,7 +142,13 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const issue = await createIssue({ title, description, location, category, imageBase64 })
+      const issue = await createIssue({ title, description, location, category, imageBase64, aiValidation: aiResult ? {
+        isValid: aiResult.isValid,
+        suggestedCategory: aiResult.suggestedCategory,
+        confidence: aiResult.confidence,
+        message: aiResult.message,
+        provider: aiResult.provider,
+      } : undefined })
       // Optimistically refresh lists
       mutate(["public-issues"])
       mutate(["my-issues", userId])
@@ -243,10 +262,32 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
                     return
                   }
                   const reader = new FileReader()
-                  reader.onload = () => {
+                  reader.onload = async () => {
                     const dataUrl = reader.result as string
                     setPreview(dataUrl)
                     setImageBase64(dataUrl)
+                    // Extract base64 portion only (strip data URL prefix)
+                    const base64 = dataUrl.split(",")[1] || dataUrl
+                    setAiLoading(true)
+                    setAiResult(null)
+                    setAiError(null)
+                    try {
+                      const r = await validateIssueImage(base64)
+                      // Log AI validation result for debugging
+                      // eslint-disable-next-line no-console
+                      console.log('[AI] validation result', r)
+                      setAiResult(r)
+                      if (r?.suggestedCategory) {
+                        setCategory(r.suggestedCategory as IssueCategory)
+                      }
+                      if (!r.isValid) {
+                        toast({ title: "Image may not show a civic issue", description: r.message })
+                      }
+                    } catch (e: any) {
+                      setAiError(e.message || 'AI validation error')
+                    } finally {
+                      setAiLoading(false)
+                    }
                   }
                   reader.readAsDataURL(f)
                 }}
@@ -257,8 +298,31 @@ export default function ReportIssueForm({ userId }: { userId: string }) {
               ) : null}
             </div>
 
+            {/* AI validation feedback */}
+            {aiLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground animate-pulse">
+                <Loader2 className="h-4 w-4 animate-spin" /> Analyzing image with AI...
+              </div>
+            ) : null}
+            {aiError ? (
+              <Alert variant="destructive">
+                <AlertTitle>AI Error</AlertTitle>
+                <AlertDescription>{aiError}</AlertDescription>
+              </Alert>
+            ) : null}
+            {aiResult ? (
+              <Alert variant={aiResult.isValid ? "default" : "destructive"} className="transition-all data-[state=closed]:opacity-0 animate-in fade-in slide-in-from-top-2">
+                <AlertTitle>
+                  {aiResult.isValid ? `Detected ${aiResult.suggestedCategory || 'issue'} (${Math.round(aiResult.confidence * 100)}%)` : 'Uncertain image'}
+                </AlertTitle>
+                <AlertDescription className="text-xs leading-relaxed">
+                  {aiResult.message} {aiResult.provider ? <span className="opacity-60">[{aiResult.provider}]</span> : null}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
             <div className="flex justify-end">
-              <Button type="submit" disabled={submitting || !title || !description}>
+              <Button type="submit" disabled={submitting || !title || !description || aiLoading}>
                 {submitting ? "Submitting..." : "Submit Issue"}
               </Button>
             </div>

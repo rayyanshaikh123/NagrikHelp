@@ -13,4 +13,5 @@ public class IssueRequestDto {
     private IssueCategory category;
     private String imageBase64;
     private String location;
+    private AIValidationDto aiValidation; // optional Phase 4 data from FE
 }

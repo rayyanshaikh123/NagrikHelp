@@ -113,6 +113,18 @@ public class IssueService {
                 .updatedAt(new Date(now))
                 .shareToken(UUID.randomUUID().toString())
                 .build();
+        if (dto.getAiValidation() != null) {
+            issue.setAiValidation(
+                com.nagrikHelp.model.AIValidation.builder()
+                    .valid(dto.getAiValidation().isValid())
+                    .suggestedCategory(dto.getAiValidation().getSuggestedCategory())
+                    .confidence(dto.getAiValidation().getConfidence())
+                    .message(dto.getAiValidation().getMessage())
+                    .provider(dto.getAiValidation().getProvider())
+                    .evaluatedAt(new Date())
+                    .build()
+            );
+        }
         issueRepository.save(issue);
         return IssueResponseDto.from(issue);
     }

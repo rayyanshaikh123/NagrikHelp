@@ -47,4 +47,7 @@ public class Issue {
     private java.util.List<String> followerEmails = new java.util.ArrayList<>();
     @Builder.Default
     private java.util.List<String> followerWebhookUrls = new java.util.ArrayList<>();
+
+    // Phase 4: AI validation details (optional)
+    private AIValidation aiValidation; // embedded sub-document
 }

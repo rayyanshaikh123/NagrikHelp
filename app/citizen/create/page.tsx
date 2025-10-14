@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/navbar'
 import ReportIssueForm from '@/components/report-issue-form'
@@ -14,7 +14,13 @@ export default function CitizenCreateIssuePage() {
     if (!token || !role) router.replace('/login')
     else if (role !== 'citizen') router.replace('/admin')
   }, [router])
-  const userId = useMemo(() => localStorage.getItem('userId') || 'demo-user-1', [])
+  const [userId, setUserId] = useState('demo-user-1')
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('userId')
+      if (stored) setUserId(stored)
+    }
+  }, [])
 
   return (
     <CitizenPageShell

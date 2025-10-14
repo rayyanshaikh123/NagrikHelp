@@ -119,13 +119,20 @@ export async function createIssue(input: {
   location: string
   category?: IssueCategory
   imageBase64?: string
+  aiValidation?: { isValid: boolean; suggestedCategory?: string; confidence: number; message: string; provider: string }
 }): Promise<Issue> {
-  const { title, description, location, category, imageBase64 } = input
+  const { title, description, location, category, imageBase64, aiValidation } = input
   // Use Phase 2 endpoint
   const res = await authFetch(`${API_BASE}/api/issues`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, description, location, category, imageBase64 }),
+    body: JSON.stringify({ title, description, location, category, imageBase64, aiValidation: aiValidation ? {
+      valid: aiValidation.isValid,
+      suggestedCategory: aiValidation.suggestedCategory,
+      confidence: aiValidation.confidence,
+      message: aiValidation.message,
+      provider: aiValidation.provider,
+    } : undefined }),
   })
   if (!res.ok) throw new Error(`Failed to create issue: ${res.status}`)
   const data = await res.json()
